@@ -1,0 +1,28 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "24-25-App-Assignment-08",
+            "cwd": "24-25-App-Assignment-08",
+            "request": "launch",
+            "type": "dart"
+        },
+        {
+            "name": "24-25-App-Assignment-08 (profile mode)",
+            "cwd": "24-25-App-Assignment-08",
+            "request": "launch",
+            "type": "dart",
+            "flutterMode": "profile"
+        },
+        {
+            "name": "24-25-App-Assignment-08 (release mode)",
+            "cwd": "24-25-App-Assignment-08",
+            "request": "launch",
+            "type": "dart",
+            "flutterMode": "release"
+        }
+    ]
+}
