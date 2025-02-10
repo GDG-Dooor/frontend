@@ -1,7 +1,8 @@
+import 'package:dooor_1/home/join.dart';
 import 'package:flutter/material.dart';
 
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+class login extends StatelessWidget {
+  const login({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -37,6 +38,7 @@ class LoginScreen extends StatelessWidget {
                 child: TextField(
                   decoration: InputDecoration(
                     hintText: ' 아이디',
+                    hintStyle: TextStyle(color: Color(0xE6BEADA0)),
                     filled: true,
                     fillColor: const Color(0xffff5f5dc),
                     border: OutlineInputBorder(
@@ -54,6 +56,7 @@ class LoginScreen extends StatelessWidget {
                   obscureText: true,
                   decoration: InputDecoration(
                     hintText: '비밀번호',
+                    hintStyle: TextStyle(color: Color(0xE6BEADA0)),
                     filled: true,
                     fillColor: const Color(0xffff5f5dc),
                     border: OutlineInputBorder(
@@ -83,8 +86,8 @@ class LoginScreen extends StatelessWidget {
                   child: const Text(
                     '로그인',
                     style: TextStyle(
-                      color: Color(0x1F000000),
-                      fontSize: 16,
+                      color: Color(0X4D000000),
+                      fontSize: 18,
                     ),
                   ),
                 ),
@@ -96,10 +99,16 @@ class LoginScreen extends StatelessWidget {
               Row(
                 mainAxisAlignment: MainAxisAlignment.start, // 왼쪽 정렬
                 children: [
+                  // 회원가입 버튼
                   Padding(
                     padding: const EdgeInsets.only(left: 40), // 왼쪽 여백 추가
                     child: TextButton(
                       onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) => const RegistrationScreen()),
+                        );
                         // 회원가입 로직
                       },
                       child: const Text(
@@ -108,34 +117,40 @@ class LoginScreen extends StatelessWidget {
                       ),
                     ),
                   ),
-                ],
-              ),
-
-              // 비밀번호 찾기와 변경 버튼
-              Row(
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  TextButton(
-                    onPressed: () {
-                      // 아이디 찾기 로직
-                    },
-                    child: const Text(
-                      '아이디 찾기',
-                      style: TextStyle(color: Colors.grey),
+                  const Spacer(), // 빈 공간 추가 (회원가입과 나머지 버튼 간의 간격 조정)
+                  // 오른쪽 정렬된 버튼들
+                  Padding(
+                    padding: const EdgeInsets.only(right: 40), // 오른쪽 여백 추가
+                    child: Row(
+                      children: [
+                        // 아이디 찾기 버튼
+                        TextButton(
+                          onPressed: () {
+                            // 아이디 찾기 로직
+                          },
+                          child: const Text(
+                            '아이디 찾기',
+                            style: TextStyle(color: Colors.grey),
+                          ),
+                        ),
+                        // 구분자 텍스트
+                        const Text(
+                          '|',
+                          style: TextStyle(color: Colors.grey),
+                        ),
+                        // 비밀번호 변경 버튼
+                        TextButton(
+                          onPressed: () {
+                            // 비밀번호 변경 로직
+                          },
+                          child: const Text(
+                            '비밀번호 변경',
+                            style: TextStyle(color: Colors.grey),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
-                  const Text(
-                    '|',
-                    style: TextStyle(color: Colors.grey),
-                  ),
-                  TextButton(
-                      onPressed: () {
-                        // 비밀번호 변경 로직
-                      },
-                      child: const Text(
-                        '비밀번호 변경',
-                        style: TextStyle(color: Colors.grey),
-                      ))
                 ],
               ),
             ],
