@@ -32,7 +32,7 @@ class LoadingScreenmain extends State<LoadingScreen> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             // 로고 이미지 표시
-            Image.asset('assets/images/dooor.png', height: 500),
+            Image.asset('assets/images/Logo.png', height: 500),
             const SizedBox(height: 20),
           ],
         ),

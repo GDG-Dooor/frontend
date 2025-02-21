@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
-import 'dart:convert';
+import 'package:flutter_project_final/login/join_success.dart';
 import 'join2.dart';
-import '../config/api_config.dart';
 import '../services/api_service.dart';
 
 class RegistrationScreen extends StatefulWidget {
@@ -84,19 +82,17 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
       if (_isIdAvailable &&
           _passwordController.text == _confirmPasswordController.text) {
         final response = await ApiService.signup({
+          //메서드를 호출하여 서버에 회원가입 요청
           'id': _idController.text,
           'password': _passwordController.text,
-          'name': _nameController.text,
-          'birthDate': _birthDateController.text,
-          'gender': _selectedGender,
+          'name': _nameController.text, //사용자 정보(ID, 비밀번호, 이름)를 Map 형태로 전달
         });
 
         if (response.statusCode >= 200 && response.statusCode < 300) {
           if (mounted) {
             Navigator.push(
               context,
-              MaterialPageRoute(
-                  builder: (context) => const RegistrationScreen2()),
+              MaterialPageRoute(builder: (context) => const SuccessScreen()),
             );
           }
         } else {
@@ -120,7 +116,15 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
   }
 
   @override
+//   void dispose() {
+//     nameController.dispose();
+//     birthDateController.dispose();
+//     super.dispose();
+//   }
+
+  @override
   void dispose() {
+    _nameController.dispose();
     _idController.dispose();
     _passwordController.dispose();
     _confirmPasswordController.dispose();
@@ -150,23 +154,42 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
             children: [
               // 상단 고정 로고 이미지
               Padding(
-                padding: const EdgeInsets.only(top: 50), // 상단 여백 줄임
+                padding: EdgeInsets.zero,
+                // 상단 여백 줄임
                 child: Center(
                   child: Image.asset(
                     'assets/images/Logo.png',
-                    height: 100,
+                    height: 250,
                     fit: BoxFit.contain,
                   ),
                 ),
               ),
 
-              const SizedBox(height: 40),
-
+              const SizedBox(height: 20),
+// 이름 입력 필드
+              const Text(
+                ' 이름',
+                style: TextStyle(fontSize: 16, color: Colors.black),
+              ),
+              const SizedBox(height: 8),
+              TextField(
+                controller: _nameController,
+                decoration: InputDecoration(
+                  filled: true,
+                  fillColor: const Color(0xCCFFF5DC),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                    borderSide: BorderSide.none,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 20),
               // 아이디 입력
               const Text(
                 '아이디',
                 style: TextStyle(fontSize: 16, color: Colors.black),
               ),
+
               const SizedBox(height: 8),
               Row(
                 children: [
@@ -174,7 +197,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                     child: TextField(
                       controller: _idController,
                       decoration: InputDecoration(
-                        hintText: '전화번호, 이메일을 적어주세요',
+                        hintText: '이메일을 적어주세요',
                         hintStyle: TextStyle(color: Color(0x8049454F)),
                         filled: true,
                         fillColor: const Color(0xCCFFF5DC),
@@ -248,25 +271,64 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
               ),
               const SizedBox(height: 40),
 
-              // 다음 버튼
+              // 회원가입 버튼
               SizedBox(
                 width: double.infinity,
                 height: 50,
                 child: ElevatedButton(
-                  onPressed: () {
+                  onPressed: () async {
                     if (!_isIdAvailable) {
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(content: Text('아이디 중복 확인을 해주세요.')),
                       );
                       return;
                     }
-                    if (_passwordController.text ==
+
+                    if (_passwordController.text !=
                         _confirmPasswordController.text) {
-                      _signup(); // API 호출
-                    } else {
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(content: Text('비밀번호가 일치하지 않습니다.')),
                       );
+                      return;
+                    }
+
+                    try {
+                      final response = await ApiService.signup({
+                        'id': _idController.text,
+                        'password': _passwordController.text,
+                        'name': _nameController.text,
+                        'birthDate': _birthDateController.text,
+                        'gender': _selectedGender,
+                      });
+
+                      if (response.statusCode == 200) {
+                        if (mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('회원가입이 완료되었습니다.')),
+                          );
+                          Navigator.pushAndRemoveUntil(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) => const SuccessScreen()),
+                            (route) => false, // 스택의 모든 화면 제거
+                          );
+                        }
+                      } else {
+                        if (mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                                content: Text('회원가입에 실패했습니다. 다시 시도해주세요.')),
+                          );
+                        }
+                      }
+                    } catch (e) {
+                      print('회원가입 에러: $e');
+                      if (mounted) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                              content: Text('서버 연결에 실패했습니다. 잠시 후 다시 시도해주세요.')),
+                        );
+                      }
                     }
                   },
                   style: ElevatedButton.styleFrom(
@@ -276,8 +338,8 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                     ),
                   ),
                   child: const Text(
-                    '다음',
-                    style: TextStyle(fontSize: 16, color: Colors.white),
+                    '회원가입',
+                    style: TextStyle(color: Colors.white, fontSize: 16),
                   ),
                 ),
               ),

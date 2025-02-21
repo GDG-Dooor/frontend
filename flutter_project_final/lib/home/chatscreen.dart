@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_project_final/home/HomePage.dart';
 import 'package:intl/intl.dart';
-import 'home_main.dart';
 
 class ChatScreen extends StatefulWidget {
   const ChatScreen({super.key});
@@ -34,7 +34,7 @@ class _ChatScreenState extends State<ChatScreen> {
       onWillPop: () async {
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(builder: (context) => const HomeScreen()),
+          MaterialPageRoute(builder: (context) => const HomePage()),
         );
         return false;
       },
@@ -48,7 +48,7 @@ class _ChatScreenState extends State<ChatScreen> {
             onPressed: () {
               Navigator.pushReplacement(
                 context,
-                MaterialPageRoute(builder: (context) => const HomeScreen()),
+                MaterialPageRoute(builder: (context) => const HomePage()),
               );
             },
           ),
@@ -72,10 +72,9 @@ class _ChatScreenState extends State<ChatScreen> {
                 itemBuilder: (context, index) {
                   final msg = messages[index];
                   return Align(
-                    alignment:
-                        msg["isUser"]
-                            ? Alignment.centerRight
-                            : Alignment.centerLeft,
+                    alignment: msg["isUser"]
+                        ? Alignment.centerRight
+                        : Alignment.centerLeft,
                     child: Container(
                       margin: const EdgeInsets.symmetric(vertical: 5),
                       padding: const EdgeInsets.symmetric(
@@ -83,10 +82,9 @@ class _ChatScreenState extends State<ChatScreen> {
                         vertical: 8,
                       ),
                       decoration: BoxDecoration(
-                        color:
-                            msg["isUser"]
-                                ? const Color(0xFF816856)
-                                : const Color(0xFFEDE1D5),
+                        color: msg["isUser"]
+                            ? const Color(0xFF816856)
+                            : const Color(0xFFEDE1D5),
                         borderRadius: BorderRadius.circular(16),
                       ),
                       child: Text(

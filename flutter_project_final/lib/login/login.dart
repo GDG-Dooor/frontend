@@ -77,13 +77,7 @@ class _LoginScreenState extends State<LoginScreen> {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               // 로고 이미지
-              Center(
-                child: Image.asset(
-                  'assets/images/Logo.png',
-                  height: 200, // 기존 크기의 2배로 증가
-                  fit: BoxFit.contain,
-                ),
-              ),
+              Image.asset('assets/images/Logo.png', height: 250),
 
               const SizedBox(height: 20),
               // 아이디 입력 필드

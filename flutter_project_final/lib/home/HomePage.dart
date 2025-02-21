@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import '../main.dart';
-import '../screens/chat_screen.dart';
 
 class HomePage extends StatelessWidget {
   const HomePage({super.key});
@@ -11,10 +10,7 @@ class HomePage extends StatelessWidget {
       backgroundColor: Colors.white,
       appBar: AppBar(
         automaticallyImplyLeading: false,
-        title: Image.asset(
-          'assets/images/Logo2.png',
-          height: 50, // 72px에서 30% 감소
-        ),
+        title: Image.asset('assets/images/left side Logo.png', height: 30),
         centerTitle: false,
         backgroundColor: Colors.white,
         elevation: 0,
