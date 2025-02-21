@@ -1,13 +1,14 @@
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import '../config/api_config.dart';
+import 'package:flutter/material.dart';
 
 class ApiService {
   // 회원 관련 API
   static Future<http.Response> checkId(String id) async {
     try {
       final url = Uri.parse('${ApiConfig.baseUrl}/api/user/check-id')
-          .replace(queryParameters: {'id': id});
+          .replace(queryParameters: {'email': id});
 
       print('요청 URL: $url');
 
@@ -36,12 +37,41 @@ class ApiService {
     }
   }
 
-  static Future<http.Response> signup(Map<String, dynamic> userData) async {
-    return await http.post(
-      Uri.parse('${ApiConfig.baseUrl}/api/user/signup'),
-      headers: {'Content-Type': 'application/json'},
-      body: jsonEncode(userData),
-    );
+  static Future<http.Response> signup(
+      Map<String, dynamic> userData, String confirmPassword) async {
+    try {
+      // 비밀번호 일치 여부 확인
+      if (userData['password'] != confirmPassword) {
+        // 비밀번호 불일치 시 커스텀 응답 반환
+        return http.Response(
+            jsonEncode({
+              'success': false,
+              'message': '비밀번호가 일치하지 않습니다.',
+            }),
+            400);
+      }
+
+      print('회원가입 요청 데이터: $userData');
+      final url = Uri.parse('${ApiConfig.baseUrl}/api/user/signup');
+      print('요청 URL: $url');
+
+      final response = await http.post(
+        url,
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+        body: jsonEncode(userData),
+      );
+
+      print('회원가입 요청 - 상태 코드: ${response.statusCode}');
+      print('응답 바디: ${response.body}');
+
+      return response;
+    } catch (e) {
+      print('회원가입 에러: $e');
+      rethrow;
+    }
   }
 
   static Future<http.Response> login(String id, String password) async {
@@ -375,5 +405,35 @@ class ApiService {
       headers: {'Content-Type': 'application/json'},
       body: jsonEncode(questData),
     );
+  }
+
+  // 비밀번호 확인 API 추가
+  static Future<http.Response> checkPassword(
+      String password, String confirmPassword) async {
+    try {
+      final url = Uri.parse('${ApiConfig.baseUrl}/api/user/check-pw')
+          .replace(queryParameters: {
+        'password': password,
+        'passwordConfirm': confirmPassword,
+      });
+
+      print('비밀번호 확인 요청 URL: $url');
+
+      final response = await http.get(
+        url,
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+      );
+
+      print('비밀번호 확인 - 상태 코드: ${response.statusCode}');
+      print('응답 바디: ${response.body}');
+
+      return response;
+    } catch (e) {
+      print('비밀번호 확인 에러: $e');
+      rethrow;
+    }
   }
 }
