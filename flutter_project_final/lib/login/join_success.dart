@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'login.dart'; // 상대 경로로 변경
+import 'login_screen.dart'; // 상대 경로로 변경
 
 class SuccessScreen extends StatelessWidget {
   const SuccessScreen({super.key});

@@ -1,16 +1,139 @@
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import '../config/api_config.dart';
-import 'package:flutter/material.dart';
+import 'dart:async';
+import 'dart:io';
+import '../models/stage.dart';
+
+// UserInfo 클래스를 최상위 레벨로 이동
+class UserInfo {
+  final int userId;
+  final String email;
+  final String password;
+  final String name;
+  final DateTime createdAt;
+  final String role;
+  final int rank;
+  final GradeInfo currentGrade;
+  final int currentQuestId;
+  final bool currentQuestCleared;
+
+  UserInfo({
+    required this.userId,
+    required this.email,
+    required this.password,
+    required this.name,
+    required this.createdAt,
+    required this.role,
+    required this.rank,
+    required this.currentGrade,
+    required this.currentQuestId,
+    required this.currentQuestCleared,
+  });
+
+  factory UserInfo.fromJson(Map<String, dynamic> json) {
+    return UserInfo(
+      userId: json['userId'] as int,
+      email: json['email'] as String,
+      password: json['password'] as String,
+      name: json['name'] as String,
+      createdAt: DateTime.parse(json['createdAt'] as String),
+      role: json['role'] as String,
+      rank: json['rank'] as int,
+      currentGrade: GradeInfo.fromJson(json['currentGrade']),
+      currentQuestId: json['currentQuestId'] as int,
+      currentQuestCleared: json['currentQuestCleared'] as bool,
+    );
+  }
+}
+
+// GradeInfo 클래스를 최상위 레벨로 이동
+class GradeInfo {
+  final int gradeId;
+  final String gradeName;
+  final int requiredStage;
+  final String description;
+  final List<String> users;
+
+  GradeInfo({
+    required this.gradeId,
+    required this.gradeName,
+    required this.requiredStage,
+    required this.description,
+    required this.users,
+  });
+
+  factory GradeInfo.fromJson(Map<String, dynamic> json) {
+    return GradeInfo(
+      gradeId: json['gradeId'] as int,
+      gradeName: json['gradeName'] as String,
+      requiredStage: json['requiredStage'] as int,
+      description: json['description'] as String,
+      users: (json['users'] as List).map((e) => e as String).toList(),
+    );
+  }
+}
 
 class ApiService {
-  // 회원 관련 API
-  static Future<http.Response> checkId(String id) async {
+  /// 로그인 API
+  static Future<http.Response> login(String email, String password) async {
     try {
-      final url = Uri.parse('${ApiConfig.baseUrl}/api/user/check-id')
-          .replace(queryParameters: {'email': id});
+      final url = Uri.parse('${ApiConfig.baseUrl}/user/login')
+          .replace(queryParameters: {
+        'email': email.trim(),
+        'password': password,
+      });
 
-      print('요청 URL: $url');
+      print('로그인 시도 - URL: $url');
+
+      final response = await http.post(
+        url,
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+      ).timeout(
+        const Duration(seconds: 15),
+        onTimeout: () {
+          throw TimeoutException('서버 응답 시간이 초과되었습니다.');
+        },
+      );
+
+      print('응답 상태 코드: ${response.statusCode}');
+      print('응답 헤더: ${response.headers}');
+      print('응답 데이터: ${response.body}');
+
+      switch (response.statusCode) {
+        case 200:
+          return response;
+        case 403:
+          throw Exception('이메일 또는 비밀번호가 일치하지 않습니다.');
+        case 400:
+          throw Exception('잘못된 요청입니다. 입력 정보를 확인해주세요.');
+        default:
+          throw Exception(
+              '로그인 처리 중 오류가 발생했습니다. (상태 코드: ${response.statusCode})');
+      }
+    } catch (e) {
+      print('로그인 에러 상세: $e');
+      if (e is TimeoutException) {
+        throw Exception('서버 응답 시간이 초과되었습니다. 잠시 후 다시 시도해주세요.');
+      } else if (e is SocketException) {
+        throw Exception('서버 연결에 실패했습니다. 인터넷 연결을 확인해주세요.');
+      }
+      rethrow;
+    }
+  }
+
+  /// 사용자 정보 조회 API
+  static Future<UserInfo> getUserInfo(int userId) async {
+    try {
+      final url = Uri.parse('${ApiConfig.baseUrl}/api/user/id')
+          .replace(queryParameters: {
+        'userId': userId.toString(),
+      });
+
+      print('사용자 정보 조회 요청 - URL: $url');
 
       final response = await http.get(
         url,
@@ -21,39 +144,27 @@ class ApiService {
       );
 
       print('응답 상태 코드: ${response.statusCode}');
-      print('응답 바디: ${response.body}');
+      print('응답 데이터: ${response.body}');
 
-      // 실제 서버 응답 구조 확인
-      if (response.statusCode != 200 && response.statusCode != 409) {
-        print('서버 응답 전체: ${response.toString()}');
-        print('응답 헤더: ${response.headers}');
+      if (response.statusCode == 200) {
+        return UserInfo.fromJson(jsonDecode(response.body));
+      } else if (response.statusCode == 404) {
+        throw Exception('사용자를 찾을 수 없습니다.');
+      } else {
+        throw Exception('사용자 정보 조회 중 오류가 발생했습니다.');
       }
-
-      return response;
     } catch (e) {
-      print('API 호출 에러 상세: $e');
-      print('스택 트레이스: ${StackTrace.current}');
+      print('사용자 정보 조회 에러: $e');
       rethrow;
     }
   }
 
-  static Future<http.Response> signup(
-      Map<String, dynamic> userData, String confirmPassword) async {
+  /// 이메일 중복 체크 API
+  static Future<http.Response> checkId(String email) async {
     try {
-      // 비밀번호 일치 여부 확인
-      if (userData['password'] != confirmPassword) {
-        // 비밀번호 불일치 시 커스텀 응답 반환
-        return http.Response(
-            jsonEncode({
-              'success': false,
-              'message': '비밀번호가 일치하지 않습니다.',
-            }),
-            400);
-      }
+      final url = Uri.parse('${ApiConfig.baseUrl}/user/check-email');
 
-      print('회원가입 요청 데이터: $userData');
-      final url = Uri.parse('${ApiConfig.baseUrl}/api/user/signup');
-      print('요청 URL: $url');
+      print('이메일 중복 체크 요청 - URL: $url');
 
       final response = await http.post(
         url,
@@ -61,12 +172,37 @@ class ApiService {
           'Content-Type': 'application/json',
           'Accept': 'application/json',
         },
-        body: jsonEncode(userData),
+        body: jsonEncode({
+          'email': email.trim(),
+        }),
       );
 
-      print('회원가입 요청 - 상태 코드: ${response.statusCode}');
-      print('응답 바디: ${response.body}');
+      print('응답 상태 코드: ${response.statusCode}');
+      return response;
+    } catch (e) {
+      print('이메일 중복 체크 에러: $e');
+      rethrow;
+    }
+  }
 
+  /// 회원가입 API
+  static Future<http.Response> signup(Map<String, dynamic> signupData) async {
+    try {
+      final url = Uri.parse('${ApiConfig.baseUrl}/user/signup');
+
+      print('회원가입 요청 - URL: $url');
+      print('회원가입 데이터: $signupData');
+
+      final response = await http.post(
+        url,
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+        body: jsonEncode(signupData),
+      );
+
+      print('응답 상태 코드: ${response.statusCode}');
       return response;
     } catch (e) {
       print('회원가입 에러: $e');
@@ -74,350 +210,37 @@ class ApiService {
     }
   }
 
-  static Future<http.Response> login(String id, String password) async {
-    return await http.post(
-      Uri.parse('${ApiConfig.baseUrl}/api/user/login'),
-      headers: {'Content-Type': 'application/json'},
-      body: jsonEncode({'id': id, 'password': password}),
-    );
-  }
-
-  static Future<http.Response> findId(String email) async {
-    return await http.get(
-      Uri.parse('${ApiConfig.baseUrl}/api/user/id').replace(
-        queryParameters: {'email': email},
-      ),
-      headers: {'Content-Type': 'application/json'},
-    );
-  }
-
-  static Future<http.Response> changePassword(
-      Map<String, String> passwordData) async {
-    return await http.post(
-      Uri.parse('${ApiConfig.baseUrl}/api/user/password'),
-      headers: {'Content-Type': 'application/json'},
-      body: jsonEncode(passwordData),
-    );
-  }
-
-  static Future<http.Response> logout() async {
-    return await http.post(
-      Uri.parse('${ApiConfig.baseUrl}/api/user/logout'),
-      headers: {'Content-Type': 'application/json'},
-    );
-  }
-
-  static Future<http.Response> withdrawal() async {
-    return await http.delete(
-      Uri.parse('${ApiConfig.baseUrl}/api/user'),
-      headers: {'Content-Type': 'application/json'},
-    );
-  }
-
-  static Future<http.Response> changeName(String newName) async {
-    return await http.patch(
-      Uri.parse('${ApiConfig.baseUrl}/api/user/name'),
-      headers: {'Content-Type': 'application/json'},
-      body: jsonEncode({'name': newName}),
-    );
-  }
-
-  // 퀘스트 관련 API 수정
-  static Future<http.Response> getQuests() async {
-    try {
-      final response = await http.get(
-        Uri.parse('${ApiConfig.baseUrl}/api/quests'),
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
-        },
-      );
-      print('퀘스트 목록 요청 URL: ${ApiConfig.baseUrl}/api/quests');
-      print('응답 상태 코드: ${response.statusCode}');
-      print('응답 바디: ${response.body}');
-      return response;
-    } catch (e) {
-      print('퀘스트 목록 조회 에러: $e');
-      rethrow;
-    }
-  }
-
-  static Future<http.Response> getQuestDetails(String questId) async {
-    return await http.get(
-      Uri.parse('${ApiConfig.baseUrl}/api/quests/$questId'),
-      headers: {'Content-Type': 'application/json'},
-    );
-  }
-
-  // 퀘스트 시작
-  static Future<http.Response> startQuest(String questId) async {
-    try {
-      final response = await http.post(
-        Uri.parse('${ApiConfig.baseUrl}/api/quests/start'),
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
-        },
-        body: jsonEncode({'questId': questId}),
-      );
-      print('퀘스트 시작 요청 - questId: $questId');
-      print('응답 상태 코드: ${response.statusCode}');
-      return response;
-    } catch (e) {
-      print('퀘스트 시작 에러: $e');
-      rethrow;
-    }
-  }
-
-  // 퀘스트 완료
-  static Future<http.Response> completeQuest(String questId) async {
-    try {
-      final response = await http.post(
-        Uri.parse('${ApiConfig.baseUrl}/api/quests/complete'),
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
-        },
-        body: jsonEncode({'questId': questId}),
-      );
-      print('퀘스트 완료 요청 - questId: $questId');
-      print('응답 상태 코드: ${response.statusCode}');
-      return response;
-    } catch (e) {
-      print('퀘스트 완료 에러: $e');
-      rethrow;
-    }
-  }
-
-  // 퀘스트 인증 이미지 검증
-  static Future<http.Response> verifyQuestImage(
-      String questId, String imageData) async {
-    try {
-      final response = await http.post(
-        Uri.parse('${ApiConfig.baseUrl}/api/quests/verify-image'),
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
-        },
-        body: jsonEncode({
-          'questId': questId,
-          'image': imageData,
-        }),
-      );
-      print('이미지 검증 요청 - questId: $questId');
-      print('응답 상태 코드: ${response.statusCode}');
-      return response;
-    } catch (e) {
-      print('이미지 검증 에러: $e');
-      rethrow;
-    }
-  }
-
-  // 이미지 검증 관련 API들
-  static Future<http.Response> verifyOcr(String imageData) async {
-    return await http.post(
-      Uri.parse('${ApiConfig.baseUrl}/ocr'),
-      headers: {'Content-Type': 'application/json'},
-      body: jsonEncode({'image': imageData}),
-    );
-  }
-
-  static Future<http.Response> verifySky(String imageData) async {
-    return await http.post(
-      Uri.parse('${ApiConfig.baseUrl}/sky'),
-      headers: {'Content-Type': 'application/json'},
-      body: jsonEncode({'image': imageData}),
-    );
-  }
-
-  static Future<http.Response> verifyMountain(String imageData) async {
-    return await http.post(
-      Uri.parse('${ApiConfig.baseUrl}/mountain'),
-      headers: {'Content-Type': 'application/json'},
-      body: jsonEncode({'image': imageData}),
-    );
-  }
-
-  static Future<http.Response> verifyMovie(String imageData) async {
-    return await http.post(
-      Uri.parse('${ApiConfig.baseUrl}/movie'),
-      headers: {'Content-Type': 'application/json'},
-      body: jsonEncode({'image': imageData}),
-    );
-  }
-
-  static Future<http.Response> verifyPositiveText(String imageData) async {
-    return await http.post(
-      Uri.parse('${ApiConfig.baseUrl}/positive'),
-      headers: {'Content-Type': 'application/json'},
-      body: jsonEncode({'image': imageData}),
-    );
-  }
-
-  static Future<http.Response> verifyEgg(String imageData) async {
-    return await http.post(
-      Uri.parse('${ApiConfig.baseUrl}/egg'),
-      headers: {'Content-Type': 'application/json'},
-      body: jsonEncode({'image': imageData}),
-    );
-  }
-
-  static Future<http.Response> verifyLibrary(String imageData) async {
-    return await http.post(
-      Uri.parse('${ApiConfig.baseUrl}/library'),
-      headers: {'Content-Type': 'application/json'},
-      body: jsonEncode({'image': imageData}),
-    );
-  }
-
-  static Future<http.Response> verifyPaper(String imageData) async {
-    return await http.post(
-      Uri.parse('${ApiConfig.baseUrl}/paper'),
-      headers: {'Content-Type': 'application/json'},
-      body: jsonEncode({'image': imageData}),
-    );
-  }
-
-  static Future<http.Response> verifyMicrophone(String imageData) async {
-    return await http.post(
-      Uri.parse('${ApiConfig.baseUrl}/microphone'),
-      headers: {'Content-Type': 'application/json'},
-      body: jsonEncode({'image': imageData}),
-    );
-  }
-
-  // 영수증 검증 API
-  static Future<http.Response> verifyReceipt(
-      String imageData, String type) async {
-    try {
-      final response = await http.post(
-        Uri.parse('${ApiConfig.baseUrl}/ocr'), // URL 변경
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
-        },
-        body: jsonEncode({'image': imageData, 'type': type}),
-      );
-
-      print('영수증 검증 요청 URL: ${ApiConfig.baseUrl}/ocr');
-      print('영수증 타입: $type');
-      print('응답 상태 코드: ${response.statusCode}');
-
-      return response;
-    } catch (e) {
-      print('영수증 검증 에러: $e');
-      rethrow;
-    }
-  }
-
-  // 랭킹 관련 API
-  static Future<http.Response> getAllRankings() async {
-    return await http.get(
-      Uri.parse('${ApiConfig.baseUrl}/api/ranking/all'),
-      headers: {'Content-Type': 'application/json'},
-    );
-  }
-
-  static Future<http.Response> getUserRanking() async {
-    return await http.get(
-      Uri.parse('${ApiConfig.baseUrl}/api/ranking'),
-      headers: {'Content-Type': 'application/json'},
-    );
-  }
-
-  static Future<http.Response> updateRanking(
-      Map<String, dynamic> rankingData) async {
-    return await http.post(
-      Uri.parse('${ApiConfig.baseUrl}/api/ranking'),
-      headers: {'Content-Type': 'application/json'},
-      body: jsonEncode(rankingData),
-    );
-  }
-
-  // 챗봇 관련 API
+  /// 채팅 메시지 전송 API
   static Future<http.Response> sendMessage(
       Map<String, dynamic> messageData) async {
-    return await http.post(
-      Uri.parse('${ApiConfig.baseUrl}/api/chat/message'),
-      headers: {'Content-Type': 'application/json'},
-      body: jsonEncode(messageData),
-    );
-  }
-
-  static Future<http.Response> getPersonalizedMessage() async {
-    return await http.post(
-      Uri.parse('${ApiConfig.baseUrl}/api/chat/personalized'),
-      headers: {'Content-Type': 'application/json'},
-    );
-  }
-
-  // 스테이지 관련 API
-  static Future<http.Response> createStage(
-      Map<String, dynamic> stageData) async {
-    return await http.post(
-      Uri.parse('${ApiConfig.baseUrl}/api/stage/make'),
-      headers: {'Content-Type': 'application/json'},
-      body: jsonEncode(stageData),
-    );
-  }
-
-  static Future<http.Response> getAllStages() async {
-    return await http.get(
-      Uri.parse('${ApiConfig.baseUrl}/api/stage'),
-      headers: {'Content-Type': 'application/json'},
-    );
-  }
-
-  static Future<http.Response> getStageDetails(String stageId) async {
-    return await http.get(
-      Uri.parse('${ApiConfig.baseUrl}/api/stage/$stageId'),
-      headers: {'Content-Type': 'application/json'},
-    );
-  }
-
-  // 사용자 퀘스트 진행 상태 조회
-  static Future<http.Response> getUserQuestStatus() async {
     try {
-      final response = await http.get(
-        Uri.parse('${ApiConfig.baseUrl}/api/user/progress'),
+      final url = Uri.parse('${ApiConfig.baseUrl}/api/chat/send');
+
+      print('메시지 전송 요청 - URL: $url');
+
+      final response = await http.post(
+        url,
         headers: {
           'Content-Type': 'application/json',
           'Accept': 'application/json',
         },
+        body: jsonEncode(messageData),
       );
 
-      print('퀘스트 상태 조회 URL: ${ApiConfig.baseUrl}/api/user/progress');
       print('응답 상태 코드: ${response.statusCode}');
-      print('응답 바디: ${response.body}');
-
       return response;
     } catch (e) {
-      print('퀘스트 상태 조회 에러: $e');
+      print('메시지 전송 에러: $e');
       rethrow;
     }
   }
 
-  // 퀘스트 생성 API
-  static Future<http.Response> createQuest(
-      Map<String, dynamic> questData) async {
-    return await http.post(
-      Uri.parse('${ApiConfig.baseUrl}/api/quests/make'),
-      headers: {'Content-Type': 'application/json'},
-      body: jsonEncode(questData),
-    );
-  }
-
-  // 비밀번호 확인 API 추가
-  static Future<http.Response> checkPassword(
-      String password, String confirmPassword) async {
+  /// 개인화된 메시지 조회 API
+  static Future<http.Response> getPersonalizedMessage() async {
     try {
-      final url = Uri.parse('${ApiConfig.baseUrl}/api/user/check-pw')
-          .replace(queryParameters: {
-        'password': password,
-        'passwordConfirm': confirmPassword,
-      });
+      final url = Uri.parse('${ApiConfig.baseUrl}/api/chat/personalized');
 
-      print('비밀번호 확인 요청 URL: $url');
+      print('개인화 메시지 요청 - URL: $url');
 
       final response = await http.get(
         url,
@@ -427,12 +250,10 @@ class ApiService {
         },
       );
 
-      print('비밀번호 확인 - 상태 코드: ${response.statusCode}');
-      print('응답 바디: ${response.body}');
-
+      print('응답 상태 코드: ${response.statusCode}');
       return response;
     } catch (e) {
-      print('비밀번호 확인 에러: $e');
+      print('개인화 메시지 조회 에러: $e');
       rethrow;
     }
   }

@@ -21,30 +21,59 @@ class RankingScreen extends StatelessWidget {
 
     return Scaffold(
       backgroundColor: const Color(0xFFE7E4E2),
-      appBar: CustomAppBar(
-        actions: [
-          Container(
-            margin: const EdgeInsets.only(right: 16),
-            padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
-            decoration: BoxDecoration(
-              color: Colors.grey[200],
-              borderRadius: BorderRadius.circular(12),
+      appBar: const CustomAppBar(),
+      body: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding:
+                const EdgeInsets.only(top: 16, bottom: 24, left: 24, right: 24),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text(
+                  'Ranking',
+                  style: TextStyle(
+                    fontSize: 31,
+                    fontWeight: FontWeight.bold,
+                    color: Color.fromARGB(255, 12, 12, 12),
+                  ),
+                ),
+                Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  decoration: BoxDecoration(
+                    color: Colors.grey[200],
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: const Text(
+                    '내 순위 🏆',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ],
             ),
-            child: const Text('내 순위 🏆', style: TextStyle(fontSize: 14)),
+          ),
+          Expanded(
+            child: ScrollConfiguration(
+              behavior:
+                  ScrollConfiguration.of(context).copyWith(overscroll: false),
+              child: ListView.builder(
+                physics: const ClampingScrollPhysics(),
+                padding: EdgeInsets.zero,
+                itemCount: rankingData.length,
+                itemBuilder: (context, index) {
+                  final item = rankingData[index];
+                  return _buildRankingItem(
+                      item['rank'], item['name'], item['score']);
+                },
+              ),
+            ),
           ),
         ],
-      ),
-      body: ScrollConfiguration(
-        behavior: ScrollConfiguration.of(context).copyWith(overscroll: false),
-        child: ListView.builder(
-          physics: const ClampingScrollPhysics(),
-          padding: EdgeInsets.zero,
-          itemCount: rankingData.length,
-          itemBuilder: (context, index) {
-            final item = rankingData[index];
-            return _buildRankingItem(item['rank'], item['name'], item['score']);
-          },
-        ),
       ),
     );
   }

@@ -1,6 +1,6 @@
 // 초반 로딩 화면
 import 'dart:async';
-import '../login/login.dart';
+import 'login/login_screen.dart';
 import 'package:flutter/material.dart';
 
 class LoadingScreen extends StatefulWidget {

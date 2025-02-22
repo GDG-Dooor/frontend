@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../main.dart';
+import '../screens/chat_screen.dart';
 
 class HomePage extends StatelessWidget {
   const HomePage({super.key});
@@ -10,7 +11,10 @@ class HomePage extends StatelessWidget {
       backgroundColor: Colors.white,
       appBar: AppBar(
         automaticallyImplyLeading: false,
-        title: Image.asset('assets/images/left side Logo.png', height: 30),
+        title: Image.asset(
+          'assets/images/Logo2.png',
+          height: 36, // 로고 크기를 2배로 증가
+        ),
         centerTitle: false,
         backgroundColor: Colors.white,
         elevation: 0,
@@ -21,9 +25,12 @@ class HomePage extends StatelessWidget {
           children: [
             GestureDetector(
               onTap: () {
-                Navigator.pushReplacement(
+                // pushReplacement 대신 push 사용하여 네비게이션 스택 유지
+                Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (context) => const MainScreen()),
+                  MaterialPageRoute(
+                    builder: (context) => const ChatScreen(),
+                  ),
                 );
               },
               child: Image.asset('assets/images/Character.png', width: 200),
@@ -31,50 +38,6 @@ class HomePage extends StatelessWidget {
             const SizedBox(height: 10),
           ],
         ),
-      ),
-      bottomNavigationBar: BottomNavigationBar(
-        type: BottomNavigationBarType.fixed,
-        backgroundColor: const Color(0xFFEDE1D5),
-        selectedItemColor: Colors.brown,
-        unselectedItemColor: Colors.grey,
-        currentIndex: 0,
-        onTap: (index) {
-          if (index == 0) {
-            // 채팅 아이콘 클릭 시
-            Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(builder: (context) => const MainScreen()),
-            );
-          } else if (index == 1) {
-            // 퀘스트 아이콘
-            Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(
-                  builder: (context) => const MainScreen(initialIndex: 1)),
-            );
-          } else if (index == 2) {
-            // 랭킹 아이콘
-            Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(
-                  builder: (context) => const MainScreen(initialIndex: 2)),
-            );
-          } else if (index == 3) {
-            // 프로필 아이콘
-            Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(
-                  builder: (context) => const MainScreen(initialIndex: 3)),
-            );
-          }
-        },
-        items: const [
-          BottomNavigationBarItem(
-              icon: Icon(Icons.chat_bubble_outline), label: '홈'),
-          BottomNavigationBarItem(icon: Icon(Icons.assignment), label: '퀘스트'),
-          BottomNavigationBarItem(icon: Icon(Icons.emoji_events), label: '랭킹'),
-          BottomNavigationBarItem(icon: Icon(Icons.person), label: '프로필'),
-        ],
       ),
     );
   }

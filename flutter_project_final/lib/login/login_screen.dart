@@ -37,10 +37,7 @@ class _LoginScreenState extends State<LoginScreen> {
       if (response.statusCode == 200) {
         // 로그인 성공
         if (mounted) {
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(builder: (context) => const HomePage()),
-          );
+          Navigator.pushReplacementNamed(context, '/main');
         }
       } else {
         // 로그인 실패

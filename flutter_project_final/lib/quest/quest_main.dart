@@ -95,11 +95,6 @@ class _QuestPageState extends State<QuestPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('퀘스트'),
-        automaticallyImplyLeading: false,
-        backgroundColor: Colors.brown[300],
-      ),
       body: ListView.builder(
         padding: const EdgeInsets.all(16),
         itemCount: stages.length,

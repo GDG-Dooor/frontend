@@ -5,7 +5,7 @@ import 'terms_of_service_screen.dart';
 import '../widgets/custom_app_bar.dart';
 import 'package:http/http.dart' as http;
 import '../config/api_config.dart';
-import '../login/login.dart';
+import '../login/login_screen.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});

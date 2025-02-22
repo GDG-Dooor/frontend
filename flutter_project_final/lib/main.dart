@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_project_final/loading.dart';
+import 'package:flutter_project_final/login/login_screen.dart';
 import 'screens/ranking_screen.dart';
 import 'screens/profile_screen.dart';
 import 'screens/quest_screen.dart';
 import 'screens/chat_screen.dart';
+import 'package:flutter_project_final/home/HomePage.dart';
 
 void main() {
   runApp(const MyApp());
@@ -25,6 +27,10 @@ class MyApp extends StatelessWidget {
         ),
       ),
       home: const LoadingScreen(),
+      routes: {
+        '/login': (context) => const LoginScreen(),
+        '/main': (context) => const MainScreen(initialIndex: 0),
+      },
     );
   }
 }
@@ -47,33 +53,61 @@ class _MainScreenState extends State<MainScreen> {
   }
 
   final List<Widget> _screens = [
-    const ChatScreen(),
+    const HomePage(),
     const QuestScreen(),
     const RankingScreen(),
     const ProfileScreen(),
   ];
 
+  void _onItemTapped(int index) {
+    setState(() {
+      _selectedIndex = index;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: _screens[_selectedIndex],
-      bottomNavigationBar: BottomNavigationBar(
-        type: BottomNavigationBarType.fixed,
-        currentIndex: _selectedIndex,
-        backgroundColor: const Color(0xFF75553E),
-        selectedItemColor: Colors.white,
-        unselectedItemColor: Colors.white70,
-        onTap: (index) {
+    return WillPopScope(
+      onWillPop: () async {
+        if (_selectedIndex != 0) {
           setState(() {
-            _selectedIndex = index;
+            _selectedIndex = 0;
           });
-        },
-        items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.chat), label: '채팅'),
-          BottomNavigationBarItem(icon: Icon(Icons.assignment), label: '퀘스트'),
-          BottomNavigationBarItem(icon: Icon(Icons.leaderboard), label: '랭킹'),
-          BottomNavigationBarItem(icon: Icon(Icons.person), label: '프로필'),
-        ],
+          return false;
+        }
+        return true;
+      },
+      child: Scaffold(
+        body: IndexedStack(
+          index: _selectedIndex,
+          children: _screens,
+        ),
+        bottomNavigationBar: BottomNavigationBar(
+          type: BottomNavigationBarType.fixed,
+          currentIndex: _selectedIndex,
+          backgroundColor: const Color(0xFF75553E),
+          selectedItemColor: Colors.white,
+          unselectedItemColor: Colors.white70,
+          onTap: _onItemTapped,
+          items: const [
+            BottomNavigationBarItem(
+              icon: Icon(Icons.home),
+              label: '홈',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.assignment),
+              label: '퀘스트',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.emoji_events),
+              label: '랭킹',
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.person),
+              label: '프로필',
+            ),
+          ],
+        ),
       ),
     );
   }

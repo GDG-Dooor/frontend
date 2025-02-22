@@ -32,7 +32,8 @@ class _ChatScreenState extends State<ChatScreen> {
     try {
       final response = await ApiService.sendMessage({
         'message': text,
-        'userId': 'current_user_id' // 실제 사용자 ID로 교체 필요
+        'userId': 'current_user_id', // 실제 사용자 ID로 교체 필요
+        // 필요한 다른 메시지 데이터 추가
       });
 
       if (response.statusCode == 200) {
@@ -83,107 +84,99 @@ class _ChatScreenState extends State<ChatScreen> {
   @override
   Widget build(BuildContext context) {
     String todayDate = DateFormat('yyyy-MM-dd').format(DateTime.now());
-    return Scaffold(
-      backgroundColor: Colors.white,
-      appBar: AppBar(
-        backgroundColor: const Color(0xFF9E8976),
-        title: Row(
+    return WillPopScope(
+      onWillPop: () async {
+        Navigator.pop(context);
+        return false;
+      },
+      child: Scaffold(
+        appBar: AppBar(
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back),
+            onPressed: () => Navigator.pop(context),
+          ),
+          title: const Text('채팅'),
+        ),
+        body: Column(
           children: [
-            Image.asset(
-              'assets/images/Logo2.png',
-              height: 36,
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Text(
+                todayDate,
+                style: const TextStyle(color: Colors.grey, fontSize: 14),
+              ),
+            ),
+            Expanded(
+              child: ListView.builder(
+                padding: const EdgeInsets.symmetric(horizontal: 10),
+                itemCount: messages.length,
+                itemBuilder: (context, index) {
+                  final msg = messages[index];
+                  return Align(
+                    alignment: msg["isUser"]
+                        ? Alignment.centerRight
+                        : Alignment.centerLeft,
+                    child: Container(
+                      margin: const EdgeInsets.symmetric(vertical: 5),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 8,
+                      ),
+                      decoration: BoxDecoration(
+                        color: msg["isUser"]
+                            ? const Color(0xFF816856)
+                            : const Color(0xFFEDE1D5),
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      child: Text(
+                        msg["text"],
+                        style: TextStyle(
+                          color: msg["isUser"] ? Colors.white : Colors.black,
+                          fontSize: 16,
+                        ),
+                      ),
+                    ),
+                  );
+                },
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Row(
+                children: [
+                  IconButton(
+                    icon: const Icon(Icons.add, color: Colors.grey),
+                    onPressed: () {},
+                  ),
+                  Expanded(
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFEDE1D5),
+                        borderRadius: BorderRadius.circular(30),
+                      ),
+                      child: TextField(
+                        controller: _controller,
+                        focusNode: _focusNode,
+                        textInputAction: TextInputAction.send,
+                        onSubmitted: _sendMessage,
+                        decoration: const InputDecoration(
+                          border: InputBorder.none,
+                          contentPadding: EdgeInsets.symmetric(horizontal: 15),
+                          hintText: "메시지를 입력하세요...",
+                          hintStyle: TextStyle(color: Colors.grey),
+                        ),
+                      ),
+                    ),
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.send, color: Colors.brown),
+                    onPressed: () => _sendMessage(_controller.text),
+                  ),
+                ],
+              ),
             ),
           ],
         ),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.white),
-          onPressed: () {
-            Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(builder: (context) => const HomePage()),
-            );
-          },
-        ),
-      ),
-      body: Column(
-        children: [
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Text(
-              todayDate,
-              style: const TextStyle(color: Colors.grey, fontSize: 14),
-            ),
-          ),
-          Expanded(
-            child: ListView.builder(
-              padding: const EdgeInsets.symmetric(horizontal: 10),
-              itemCount: messages.length,
-              itemBuilder: (context, index) {
-                final msg = messages[index];
-                return Align(
-                  alignment: msg["isUser"]
-                      ? Alignment.centerRight
-                      : Alignment.centerLeft,
-                  child: Container(
-                    margin: const EdgeInsets.symmetric(vertical: 5),
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 8,
-                    ),
-                    decoration: BoxDecoration(
-                      color: msg["isUser"]
-                          ? const Color(0xFF816856)
-                          : const Color(0xFFEDE1D5),
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                    child: Text(
-                      msg["text"],
-                      style: TextStyle(
-                        color: msg["isUser"] ? Colors.white : Colors.black,
-                        fontSize: 16,
-                      ),
-                    ),
-                  ),
-                );
-              },
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Row(
-              children: [
-                IconButton(
-                  icon: const Icon(Icons.add, color: Colors.grey),
-                  onPressed: () {},
-                ),
-                Expanded(
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFEDE1D5),
-                      borderRadius: BorderRadius.circular(30),
-                    ),
-                    child: TextField(
-                      controller: _controller,
-                      focusNode: _focusNode,
-                      textInputAction: TextInputAction.send,
-                      onSubmitted: _sendMessage,
-                      decoration: const InputDecoration(
-                        border: InputBorder.none,
-                        contentPadding: EdgeInsets.symmetric(horizontal: 15),
-                        hintText: "메시지를 입력하세요...",
-                        hintStyle: TextStyle(color: Colors.grey),
-                      ),
-                    ),
-                  ),
-                ),
-                IconButton(
-                  icon: const Icon(Icons.send, color: Colors.brown),
-                  onPressed: () => _sendMessage(_controller.text),
-                ),
-              ],
-            ),
-          ),
-        ],
       ),
     );
   }
