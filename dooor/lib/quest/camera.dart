@@ -67,6 +67,11 @@ class _Camera_permissionState extends State<Camera_permission> {
           ),
         );
 
+      // 인증 토큰 추가
+      if (ApiService.authToken != null) {
+        request.headers['Authorization'] = ApiService.authToken!;
+      }
+
       setState(() {
         _isUploading = true;
       });
@@ -101,6 +106,7 @@ class _Camera_permissionState extends State<Camera_permission> {
         }
       } else {
         print("❌ 서버 요청 실패. 상태 코드: ${response.statusCode}");
+        print("응답 내용: $responseBody"); // 디버깅을 위한 응답 내용 출력
 
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text("서버 요청 실패. 다시 시도해주세요!")),
