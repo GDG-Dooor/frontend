@@ -10,28 +10,32 @@ class RegistrationScreen extends StatefulWidget {
 }
 
 class _RegistrationScreenState extends State<RegistrationScreen> {
-  final TextEditingController _idController = TextEditingController();
-  final TextEditingController _passwordController = TextEditingController();
+  final TextEditingController _idController =
+      TextEditingController(); // 아이디 입력 필드 컨트롤러
+  final TextEditingController _passwordController =
+      TextEditingController(); // 비밀번호 입력 필드 컨트롤러
   final TextEditingController _confirmPasswordController =
-      TextEditingController();
-  final TextEditingController _nameController = TextEditingController();
-  final TextEditingController _birthDateController = TextEditingController();
+      TextEditingController(); // 비밀번호 확인 입력 필드 컨트롤러
+  final TextEditingController _nameController =
+      TextEditingController(); // 이름 입력 필드 컨트롤러
   bool _isIdAvailable = false; // 아이디 사용 가능 여부
-  bool _isLoading = false;
+  bool _isLoading = false; // 회원가입 중 로딩 여부
 
   @override
   void initState() {
     super.initState();
   }
 
+  // 아이디 중복 확인
   Future<void> _checkId() async {
     if (_idController.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('아이디를 입력해주세요.')),
+        const SnackBar(content: Text('아이디를 입력해주세요.')), // 아이디 입력 안했을 때
       );
       return;
     }
 
+    // 중복 확인 요청
     try {
       print('중복 체크 시작 - 아이디: ${_idController.text}');
       final response = await ApiService.checkId(_idController.text);
@@ -59,23 +63,26 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
         print('예상치 못한 상태 코드: ${response.statusCode}');
         print('응답 내용: ${response.body}');
         setState(() {
-          _isIdAvailable = false;
+          _isIdAvailable = false; // 중복 확인 실패 시 사용 불가로 변경
         });
-        if (mounted) {
+
+        if (mounted) // 화면이 그려진 상태에서만 실행
+        {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content:
-                  Text('중복 확인 중 오류가 발생했습니다. (상태 코드: ${response.statusCode})'),
+              content: Text(
+                  '중복 확인 중 오류가 발생했습니다. (상태 코드: ${response.statusCode})'), // 중복 확인 중 오류 발생 시 메시지 출력
             ),
           );
         }
       }
     } catch (e) {
-      print('중복 체크 에러 상세: $e');
+      // 예외 처리
+      print('중복 체크 에러 상세: $e'); // 에러 상세 출력
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('서버 연결에 실패했습니다. 잠시 후 다시 시도해주세요.')),
-        );
+        ); // 서버 연결 실패 시 메시지 출력
       }
     }
   }
@@ -157,11 +164,11 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
 
   @override
   void dispose() {
+    // 컨트롤러 해제
     _idController.dispose();
     _passwordController.dispose();
     _confirmPasswordController.dispose();
     _nameController.dispose();
-    _birthDateController.dispose();
     super.dispose();
   }
 
@@ -178,27 +185,26 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
         backgroundColor: Colors.transparent,
         elevation: 0,
       ),
+
       body: SingleChildScrollView(
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 40),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // 상단 고정 로고 이미지
               Padding(
-                padding: EdgeInsets.zero,
-                // 상단 여백 줄임
+                padding: EdgeInsets.zero, // 상단 여백 줄임
                 child: Center(
                   child: Image.asset(
                     'assets/images/Logo.png',
-                    height: 250,
+                    height: 230,
                     fit: BoxFit.contain,
                   ),
                 ),
               ),
 
-              const SizedBox(height: 20),
-// 이름 입력 필드
+              const SizedBox(height: 10),
+
               const Text(
                 ' 이름',
                 style: TextStyle(fontSize: 16, color: Colors.black),
@@ -207,8 +213,8 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
               TextFormField(
                 controller: _nameController,
                 decoration: const InputDecoration(
-                  labelText: '이름',
                   hintText: '이름을 입력해주세요',
+                  hintStyle: TextStyle(color: Color(0x8049454F)),
                   filled: true,
                   fillColor: Color(0xCCFFF5DC),
                   border: OutlineInputBorder(
@@ -217,6 +223,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                   ),
                 ),
                 validator: (value) {
+                  // 입력값 검증
                   if (value == null || value.isEmpty) {
                     return '이름을 입력해주세요';
                   }
@@ -260,12 +267,16 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                     ),
                   ),
                   const SizedBox(width: 8),
+
+                  // 중복확인 버튼
                   ElevatedButton(
-                    onPressed: _checkId,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFFBEADA0),
+                    onPressed: _checkId, // 중복확인 함수 연결
+                    style: ElevatedButton.styleFrom // 버튼 스타일
+                        (
+                      backgroundColor: const Color(0xFFBEADA0), // 배경색
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(8),
+                        // 모양
+                        borderRadius: BorderRadius.circular(8), // 모서리 둥글기
                       ),
                     ),
                     child: const Text('중복확인'),
@@ -294,6 +305,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                   ),
                 ),
               ),
+
               const SizedBox(height: 20),
 
               // 비밀번호 확인
@@ -302,6 +314,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                 style: TextStyle(fontSize: 16, color: Colors.black),
               ),
               const SizedBox(height: 8),
+
               TextField(
                 controller: _confirmPasswordController, // 컨트롤러 연결
                 obscureText: true,
@@ -316,6 +329,7 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
                   ),
                 ),
               ),
+
               const SizedBox(height: 40),
 
               // 회원가입 버튼

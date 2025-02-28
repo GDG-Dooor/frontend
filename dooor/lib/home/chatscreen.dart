@@ -2,13 +2,10 @@
 
 import 'dart:convert';
 import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
-
-import '../config/api_config.dart';
 import 'HomePage.dart';
 import 'home_bottom.dart';
 
