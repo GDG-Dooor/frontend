@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_project_final/home/home_bottom.dart';
 import 'Password_change.dart';
-import 'id_find.dart';
 import 'join.dart';
 import '../services/api_service.dart';
 
@@ -95,7 +94,9 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                 ),
               ),
+
               const SizedBox(height: 8),
+
               // 비밀번호 입력 필드
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 30),
@@ -138,7 +139,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
               const SizedBox(height: 0),
 
-              // 하단 텍스트 회원가입입 버튼
+              // 하단 텍스트 회원가입 버튼
               Row(
                 mainAxisAlignment: MainAxisAlignment.start, // 왼쪽 정렬
                 children: [
@@ -168,24 +169,6 @@ class _LoginScreenState extends State<LoginScreen> {
                     padding: const EdgeInsets.only(right: 30), // 오른쪽 여백 추가
                     child: Row(
                       children: [
-                        // 아이디 찾기 버튼
-                        TextButton(
-                          onPressed: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => FindIdScreen(),
-                              ),
-                            );
-                            // 아이디 찾기 로직
-                          },
-                          child: const Text(
-                            '아이디 찾기',
-                            style: TextStyle(color: Colors.grey),
-                          ),
-                        ),
-                        // 구분자 텍스트
-                        const Text('|', style: TextStyle(color: Colors.grey)),
                         // 비밀번호 변경 버튼
                         TextButton(
                           onPressed: () {

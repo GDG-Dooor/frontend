@@ -77,88 +77,115 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF9FEFF),
+      backgroundColor: const Color(0xFFF9FEFF), // 배경 색상
       appBar: AppBar(
-        title: const Text('비밀번호 변경'),
+        leading: IconButton(
+          // 뒤로가기 버튼 추가
+          icon: const Icon(Icons.arrow_back, color: Colors.black),
+          onPressed: () => Navigator.of(context).pop(),
+        ),
         backgroundColor: Colors.transparent,
         elevation: 0,
       ),
+
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            TextField(
-              controller: _idController,
-              decoration: InputDecoration(
-                labelText: '아이디',
-                hintText: '아이디를 입력하세요',
-                filled: true,
-                fillColor: const Color(0xFFFFF5DC),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
-                  borderSide: BorderSide.none,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 40),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Padding(
+                padding: EdgeInsets.zero, // 상단 여백 줄임
+                child: Center(
+                  child: Image.asset(
+                    'assets/images/Logo.png',
+                    height: 230,
+                    fit: BoxFit.contain,
+                  ),
                 ),
               ),
-            ),
-            const SizedBox(height: 16),
-            TextField(
-              controller: _emailController,
-              decoration: InputDecoration(
-                labelText: '이메일',
-                hintText: '가입 시 등록한 이메일을 입력하세요',
-                filled: true,
-                fillColor: const Color(0xFFFFF5DC),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
-                  borderSide: BorderSide.none,
+
+              const SizedBox(height: 20),
+
+              // 아이디 입력 필드
+              const Text(
+                ' 아이디',
+                style: TextStyle(fontSize: 16, color: Colors.black),
+              ),
+              const SizedBox(height: 8),
+              TextFormField(
+                controller: _idController,
+                decoration: const InputDecoration(
+                  hintText: '아이디를 입력해주세요',
+                  hintStyle: TextStyle(color: Color(0x8049454F)),
+                  filled: true,
+                  fillColor: Color(0xCCFFF5DC),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.all(Radius.circular(8)),
+                    borderSide: BorderSide.none,
+                  ),
                 ),
               ),
-              keyboardType: TextInputType.emailAddress,
-            ),
-            const SizedBox(height: 16),
-            TextField(
-              controller: _newPasswordController,
-              decoration: InputDecoration(
-                labelText: '새 비밀번호',
-                hintText: '새로운 비밀번호를 입력하세요',
-                filled: true,
-                fillColor: const Color(0xFFFFF5DC),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
-                  borderSide: BorderSide.none,
+
+              const SizedBox(height: 20),
+
+              // 새 비밀번호 입력 필드
+              const Text(
+                ' 새 비밀번호',
+                style: TextStyle(fontSize: 16, color: Colors.black),
+              ),
+              const SizedBox(height: 8),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 30),
+                child: TextField(
+                  controller: _newPasswordController,
+                  obscureText: true,
+                  decoration: InputDecoration(
+                    hintText: '비밀번호',
+                    hintStyle: const TextStyle(color: Color(0xE6BEADA0)),
+                    filled: true,
+                    fillColor: const Color(0xffff5f5dc),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(20),
+                      borderSide: BorderSide.none,
+                    ),
+                  ),
                 ),
               ),
-              obscureText: true,
-            ),
-            const SizedBox(height: 16),
-            TextField(
-              controller: _confirmPasswordController,
-              decoration: InputDecoration(
-                labelText: '새 비밀번호 확인',
-                hintText: '새로운 비밀번호를 다시 입력하세요',
-                filled: true,
-                fillColor: const Color(0xFFFFF5DC),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
-                  borderSide: BorderSide.none,
+
+              const SizedBox(height: 20),
+
+              // 새 비밀번호 확인 입력 필드
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 30),
+                child: TextField(
+                  controller: _confirmPasswordController,
+                  obscureText: true,
+                  decoration: InputDecoration(
+                    hintText: '비밀번호',
+                    hintStyle: const TextStyle(color: Color(0xE6BEADA0)),
+                    filled: true,
+                    fillColor: const Color(0xffff5f5dc),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(20),
+                      borderSide: BorderSide.none,
+                    ),
+                  ),
                 ),
               ),
-              obscureText: true,
-            ),
-            const SizedBox(height: 24),
-            ElevatedButton(
-              onPressed: _changePassword,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFFBEADA0),
-                padding: const EdgeInsets.symmetric(vertical: 16),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
+              ElevatedButton(
+                onPressed: _changePassword,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFFBEADA0),
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
                 ),
+                child: const Text('비밀번호 변경'),
               ),
-              child: const Text('비밀번호 변경'),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

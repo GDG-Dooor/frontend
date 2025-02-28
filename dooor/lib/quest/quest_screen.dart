@@ -1,8 +1,11 @@
+import 'dart:convert';
+import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:flutter_project_final/quest/camera.dart';
+import 'package:flutter_project_final/quest/quest_item.dart';
 import '../models/quest.dart';
-import 'quest_verification_screen.dart';
 import '../services/api_service.dart';
-import '../models/stage.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class QuestScreen extends StatefulWidget {
   const QuestScreen({super.key});
@@ -12,572 +15,433 @@ class QuestScreen extends StatefulWidget {
 }
 
 class _QuestScreenState extends State<QuestScreen> {
-  final List<Quest> quests = [
-    // 1단계 - 튜토리얼
-    Quest(
-      questId: 1,
-      title: '챗봇한테 인사해보기', // 퀘스트 제목
-      description: '챗봇과 대화를 시작해보세요', // 퀘스트 설명
-      stage: 1, // 퀘스트 단계
-    ),
-    Quest(
-      questId: 2,
-      title: '퀘스트 탭 클릭하기',
-      description: '여기는 퀘스트창이야. 나는 네가 이 퀘스트를 깨면서 자신감을 얻었으면 좋겠어',
-      stage: 1,
-    ),
-    Quest(
-      questId: 3,
-      title: '랭킹 탭 확인하기',
-      description: '많은 사람들이 함께하고 있어. 한 번 봐봐',
-      stage: 1,
-    ),
-
-    // 2단계
-    Quest(
-      questId: 4,
-      title: '좋아하는/듣고싶은 말 적어보기',
-      description: '자신에게 힘이 되는 말을 적어보세요',
-      stage: 2,
-    ),
-    Quest(
-      questId: 5,
-      title: '좋아하는 음악을 듣기',
-      description: '음악과 함께 휴식을 취해보세요',
-      stage: 2,
-    ),
-    Quest(
-      questId: 6,
-      title: '물 한 잔 마시기',
-      description: '물을 마시며 몸의 수분을 채워보세요',
-      stage: 2,
-    ),
-
-    // 3단계
-    Quest(
-      questId: 7,
-      title: '창문 열고 바깥 공기 마셔보기',
-      description: '신선한 공기를 마시며 잠시 휴식을 취해보세요',
-      stage: 3,
-    ),
-    Quest(
-      questId: 8,
-      title: '5분간 명상해보기',
-      description: '마음을 가라앉히고 명상을 해보세요. 아무생각이나 해도 상관없어요',
-      stage: 3,
-    ),
-    Quest(
-      questId: 9,
-      title: '모르는 영단어 5개 외우기',
-      description: '영어 단어를 찾아보고, 외워보세요 \n외운 영어단어 5개를 써주세요',
-      stage: 3,
-    ),
-
-    //4단계
-    Quest(
-      questId: 10,
-      title: '손 글씨로 “나는 잘하고 있어” 적어보기',
-      description: '손 글씨로 적고나서 사진을 찍어주세요',
-      needsVerification: true,
-      stage: 4,
-    ),
-    Quest(
-      questId: 11,
-      title: '본인에게 긍정적인 말 3번 하기',
-      description: '긍정적인 말을 외쳐보세요',
-      stage: 4,
-    ),
-    Quest(
-      questId: 12,
-      title: '오늘 하루를 포이에게 말해주세요',
-      stage: 4,
-      description: '당신의 현재 감정을 말해주세요',
-    ),
-
-    //5단계
-    Quest(
-      questId: 13,
-      title: '집 안의 거울 닦아보기',
-      description: '어떤 거울이든 상관없어요',
-      stage: 5,
-    ),
-    Quest(
-      questId: 13,
-      title: '거울 앞에서 미소 지어보기',
-      description: '거울 앞에서 미소를 지어보세요',
-      stage: 5,
-    ),
-    Quest(
-      questId: 13,
-      title: '감사했던 일을 포이한테 말해주세요',
-      description: '사소한거라도 상관없어요',
-      stage: 5,
-    ),
-  ];
-
-  List<Stage> stages = []; //stages는 각 스테이지(Stage) 정보를 저장하는 리스트
-  bool isLoading =
-      true; //isLoading은 데이터 로딩 상태를 나타내는 변수. true이면 로딩 중, false이면 로딩 완료 -> 목록을 정상적으로 표시.
+  List<Quest> _quests = [];
+  bool _isLoading = true;
+  String _errorMessage = '';
+  int _currentStage = 1; // 현재 사용자의 단계
+  Map<int, bool> _completedQuests = {}; // 완료된 퀘스트 목록
+  Map<int, List<Quest>> _questsByStage = {}; // 스테이지별 퀘스트
 
   @override
   void initState() {
     super.initState();
-    _loadStagesData(); //데이터 로딩 함수 호출
+    _loadCompletedQuests();
+    _fetchQuests();
   }
 
-  void _loadStagesData() {
-    // 📌 API 호출을 통해 스테이지 정보를 불러오는 코드
-    stages = [
-      Stage(
-        stageId: 1,
-        title: "1단계 ",
-        questId: [1, 2, 3],
-      ),
-      Stage(
-        stageId: 2,
-        title: "2단계",
-        questId: [4, 5, 6],
-      ),
-      Stage(
-        stageId: 3,
-        title: "3단계 ",
-        questId: [7, 8, 9],
-      ),
-      Stage(
-        stageId: 4,
-        title: "4단계 ",
-        questId: [10, 11, 12],
-      ),
-      Stage(
-        stageId: 5,
-        title: "5단계",
-        questId: [13, 14, 15],
-      ),
-      Stage(
-        stageId: 6,
-        title: "6단계 ",
-        questId: [16, 17, 18],
-      ),
-      Stage(
-        stageId: 7,
-        title: "7단계 ",
-        questId: [19, 20, 21],
-      ),
-      Stage(
-        stageId: 8,
-        title: "8단계 ",
-        questId: [22, 23, 24],
-      ),
-      Stage(
-        stageId: 9,
-        title: "9단계",
-        questId: [25, 26, 27],
-      ),
-      Stage(
-        stageId: 10,
-        title: "10단계 ",
-        questId: [28, 29, 30],
-      ),
-      Stage(
-        stageId: 11,
-        title: "11단계 ",
-        questId: [31, 32, 33],
-      ),
-      Stage(
-        stageId: 12,
-        title: "12단계 ",
-        questId: [34, 35, 36],
-      ),
-      Stage(
-        stageId: 13,
-        title: "13단계",
-        questId: [37, 38, 39],
-      ),
-      Stage(
-        stageId: 14,
-        title: "14단계 ",
-        questId: [40, 41, 42],
-      ),
-      Stage(
-        stageId: 15,
-        title: "15단계 ",
-        questId: [43, 44, 45],
-      ),
-      Stage(
-        stageId: 16,
-        title: "16단계 ",
-        questId: [46, 47, 48],
-      ),
-      Stage(
-        stageId: 17,
-        title: "17단계 ",
-        questId: [49, 50, 51],
-      ),
-      Stage(
-        stageId: 18,
-        title: "18단계 ",
-        questId: [52, 53, 54],
-      ),
-      Stage(
-        stageId: 19,
-        title: "19단계",
-        questId: [55, 56, 57],
-      ),
-    ];
+  // 완료된 퀘스트 목록 로드
+  Future<void> _loadCompletedQuests() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final completedQuestsJson = prefs.getString('completed_quests');
+      final savedStage = prefs.getInt('current_stage') ?? 1;
 
-    setState(() {
-      isLoading = false;
-    });
-  }
-
-  //퀘스트들이 모두 완료되었는지 확인
-  @override
-  Widget build(BuildContext context) {
-    // 각 단계별 퀘스트 완료 여부 확인
-    bool isStageCompleted(int stageId) {
-      return quests
-          .where((quest) =>
-              quest.stage == stageId) // ✅ 특정 단계(stageId)에 해당하는 퀘스트 필터링
-          .every((quest) => quest.isCompleted); // ✅ 해당 단계의 모든 퀘스트가 완료되었는지 확인
+      if (completedQuestsJson != null) {
+        final Map<String, dynamic> decoded = jsonDecode(completedQuestsJson);
+        setState(() {
+          _completedQuests = decoded
+              .map((key, value) => MapEntry(int.parse(key), value as bool));
+          _currentStage = savedStage;
+        });
+        debugPrint('로드된 완료 퀘스트: $_completedQuests');
+        debugPrint('로드된 현재 스테이지: $_currentStage');
+      }
+    } catch (e) {
+      debugPrint('완료된 퀘스트 로드 오류: $e');
     }
-
-    return Scaffold(
-      body: isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : SingleChildScrollView(
-              //스크롤 가능하게 설정
-              child: Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Column(
-                  children: stages.map((stage) {
-                    //각 스테이지 UI 생성
-                    // 이전 단계가 완료되었는지 확인
-                    bool isPreviousStageCompleted = stage.stageId ==
-                            1 || //첫 번째 스테이지(튜토리얼 단계)는 항상 열려 있음.
-                        isStageCompleted(
-                            stage.stageId - 1); //그 외 스테이지는 이전 스테이지가 완료된 경우에만 열림
-
-                    return Container(
-                      margin: const EdgeInsets.only(bottom: 8), //스테이지 간격
-                      decoration: BoxDecoration(
-                        color: const Color(0xFF9E8976), //배경색 적용
-                        borderRadius: BorderRadius.circular(8), //모서리 둥글게
-                      ),
-                      child: Theme(
-                        //테마 설정
-                        data: Theme.of(context).copyWith(
-                          dividerColor: Colors.transparent, //구분선 투명하게 설정
-                        ),
-                        child: ExpansionTile(
-                          //확장형 스테이지 : 클릭 시 펼쳐지는 리스트
-                          title: Row(
-                            children: [
-                              Text(
-                                stage.title,
-                                style: const TextStyle(
-                                  //스테이지 제목 스타일
-                                  color: Colors.white,
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.bold, //굵게
-                                ),
-                              ),
-                              const Spacer(), //오른쪽 여백
-                              Icon(
-                                isPreviousStageCompleted //이전 스테이지가 완료되었는지에 따라 아이콘 변경
-                                    ? Icons.lock_open //완료된 경우
-                                    : Icons.lock, //미완료된 경우
-                                color: Colors.white,
-                                size: 20,
-                              ),
-                            ],
-                          ),
-                          children:
-                              isPreviousStageCompleted //이전 스테이지가 완료되었는지에 따라 퀘스트 목록 표시
-                                  ? quests //퀘스트 목록
-                                      .where(//특정 스테이지에 해당하는 퀘스트 필터링
-                                          (quest) =>
-                                              quest.stage ==
-                                              stage
-                                                  .stageId) //현재 stageId와 일치하는 퀘스트만 필터링
-                                      .map((quest) =>
-                                          _buildQuestTile(quest)) //퀘스트 UI 생성
-                                      .toList()
-                                  : <Widget>[],
-                        ),
-                      ),
-                    );
-                  }).toList(), //스테이지 목록을 리스트로 변환
-                ),
-              ),
-            ),
-    );
   }
 
-  Widget _buildQuestTile(Quest quest) {
-    void _showQuestDialog() async {
-      try {
-        print('퀘스트 시작 API 호출 시도: questId=${quest.questId}');
-        final response = await ApiService.startQuest(1, quest.questId);
+  // 완료된 퀘스트 저장
+  Future<void> _saveCompletedQuests() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final completedQuestsJson = jsonEncode(_completedQuests
+          .map((key, value) => MapEntry(key.toString(), value)));
+      await prefs.setString('completed_quests', completedQuestsJson);
+      await prefs.setInt('current_stage', _currentStage);
+      debugPrint('저장된 완료 퀘스트: $completedQuestsJson');
+      debugPrint('저장된 현재 스테이지: $_currentStage');
+    } catch (e) {
+      debugPrint('완료된 퀘스트 저장 오류: $e');
+    }
+  }
 
-        if (!mounted) return;
+  // 다음 스테이지 잠금 해제 확인
+  void _checkStageUnlock() {
+    // 현재 스테이지의 모든 퀘스트가 완료되었는지 확인
+    final currentStageQuests = _questsByStage[_currentStage] ?? [];
 
-        if (response.statusCode == 200) {
-          // 퀘스트 시작 성공 후 다이얼로그 표시
-          showDialog(
-            context: context,
-            builder: (BuildContext context) {
-              return Dialog(
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                backgroundColor: const Color(0xFFF5F1ED),
-                child: Padding(
-                  padding: const EdgeInsets.all(20),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.all(16),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(16),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withOpacity(0.05),
-                              blurRadius: 5,
-                              offset: const Offset(0, 2),
-                            ),
-                          ],
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              quest.title,
-                              style: const TextStyle(
-                                fontSize: 18,
-                                fontWeight: FontWeight.bold,
-                                color: Color(0xFF75553E),
-                              ),
-                            ),
-                            const SizedBox(height: 12),
-                            Container(
-                              padding: const EdgeInsets.all(12),
-                              decoration: BoxDecoration(
-                                color: const Color(0xFFE7E4E2),
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              child: Text(
-                                quest.description,
-                                style: const TextStyle(
-                                  fontSize: 16,
-                                  color: Color(0xFF75553E),
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(height: 20),
-                      if (quest.needsVerification)
-                        ElevatedButton(
-                          onPressed: () async {
-                            Navigator.of(context).pop();
-                            final completed = await Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => QuestVerificationScreen(
-                                  questId: quest.questId,
-                                  questTitle: quest.title,
-                                  verificationType:
-                                      quest.verificationType ?? 'image',
-                                ),
-                              ),
-                            );
+    if (currentStageQuests.isEmpty) return;
 
-                            if (completed == true) {
-                              try {
-                                final completeResponse =
-                                    await ApiService.completeQuest(
-                                        1, quest.questId);
-
-                                if (!mounted) return;
-
-                                if (completeResponse.statusCode == 200) {
-                                  setState(() {
-                                    quest.isCompleted = true;
-                                  });
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(
-                                        content: Text('퀘스트가 완료되었습니다!')),
-                                  );
-                                }
-                              } catch (e) {
-                                if (!mounted) return;
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(
-                                      content: Text('퀘스트 완료 처리 중 오류가 발생했습니다.')),
-                                );
-                              }
-                            }
-                          },
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color(0xFF9E8976),
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 24, vertical: 12),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                          ),
-                          child: const Text(
-                            '인증하기',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        )
-                      else
-                        ElevatedButton(
-                          onPressed: () async {
-                            Navigator.of(context).pop();
-                            try {
-                              final completeResponse =
-                                  await ApiService.completeQuest(
-                                      1, quest.questId);
-
-                              if (!mounted) return;
-
-                              if (completeResponse.statusCode == 200) {
-                                setState(() {
-                                  quest.isCompleted = true;
-                                });
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(
-                                      content: Text('퀘스트가 완료되었습니다!')),
-                                );
-                              }
-                            } catch (e) {
-                              if (!mounted) return;
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                    content: Text('퀘스트 완료 처리 중 오류가 발생했습니다.')),
-                              );
-                            }
-                          },
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color(0xFF9E8976),
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 24, vertical: 12),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                          ),
-                          child: const Text(
-                            '완료하기',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ),
-                    ],
-                  ),
-                ),
-              );
-            },
-          );
-        }
-      } catch (e, stackTrace) {
-        print('퀘스트 시작 에러: $e');
-        print('스택 트레이스: $stackTrace');
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('퀘스트 시작 중 오류가 발생했습니다: ${e.toString()}')),
-          );
-        }
+    bool allCompleted = true;
+    for (var quest in currentStageQuests) {
+      if (_completedQuests[quest.questId] != true) {
+        allCompleted = false;
+        break;
       }
     }
 
-    return Container(
-      margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
-      decoration: BoxDecoration(
-        color: const Color(0xFFBEADA0),
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.1),
-            blurRadius: 4,
-            offset: const Offset(0, 2),
+    // 모든 퀘스트가 완료되었다면 다음 스테이지 언락
+    if (allCompleted) {
+      // 다음 스테이지가 존재하는지 확인
+      if (_questsByStage.containsKey(_currentStage + 1)) {
+        setState(() {
+          _currentStage += 1;
+        });
+        _saveCompletedQuests(); // 새로운 스테이지 저장
+
+        // 사용자에게 알림
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('${_currentStage}단계가 잠금 해제되었습니다!'),
+            duration: Duration(seconds: 2),
+            backgroundColor: Color(0xFF816856),
           ),
-        ],
-      ),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap:
-              quest.isCompleted ? null : _showQuestDialog, // ✅ 퀘스트 완료 시 클릭 불가
-          borderRadius: BorderRadius.circular(12),
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    Container(
-                      width: 24,
-                      height: 24,
-                      margin: const EdgeInsets.only(right: 12),
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        border: Border.all(color: Colors.white, width: 2),
-                        color: quest.isCompleted ? Colors.white : null,
-                      ),
-                      child: quest.isCompleted
-                          ? const Icon(
-                              Icons.check,
-                              size: 18,
-                              color: Color(0xFF9E8976),
-                            )
-                          : null,
-                    ),
-                    Expanded(
-                      child: Text(
-                        quest.title,
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ),
-                    if (quest.needsVerification && !quest.isCompleted)
-                      Container(
-                        margin: const EdgeInsets.only(left: 8),
-                        padding: const EdgeInsets.symmetric(
-                            horizontal: 8, vertical: 4),
-                        decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.2),
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: const Text(
-                          '인증필요',
-                          style: TextStyle(
-                            color: Colors.white,
-                            fontSize: 12,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                      ),
-                  ],
-                ),
-              ],
-            ),
+        );
+      }
+    }
+  }
+
+  Future<void> _fetchQuests() async {
+    setState(() {
+      _isLoading = true;
+      _errorMessage = '';
+    });
+
+    try {
+      // API 요청 헤더 설정
+      final headers = {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json; charset=utf-8',
+      };
+
+      // 토큰이 있으면 Authorization 헤더 추가
+      if (ApiService.authToken != null) {
+        headers['Authorization'] = ApiService.authToken!;
+      }
+
+      // 새 API 서비스 사용
+      final quests = await ApiService.getQuests(headers: headers);
+
+      // 이미 API 서비스에서 받아온 퀘스트 목록 사용
+      debugPrint('가져온 퀘스트 수: ${quests.length}');
+
+      // 스테이지별로 그룹화
+      final Map<int, List<Quest>> questsByStage = {};
+      for (var quest in quests) {
+        if (!questsByStage.containsKey(quest.stageId)) {
+          questsByStage[quest.stageId] = [];
+        }
+        questsByStage[quest.stageId]!.add(quest);
+      }
+
+      // 정렬해서 저장
+      final List<Quest> sortedQuests = [];
+      final List<int> stages = questsByStage.keys.toList()..sort();
+      for (var stage in stages) {
+        sortedQuests.addAll(questsByStage[stage]!);
+      }
+
+      setState(() {
+        _quests = sortedQuests;
+        _questsByStage = questsByStage;
+        _isLoading = false;
+      });
+
+      // 다음 스테이지 잠금 해제 여부 확인
+      _checkStageUnlock();
+    } catch (e) {
+      debugPrint('퀘스트 목록 조회 오류: $e');
+      setState(() {
+        _errorMessage = '데이터 로드 중 오류가 발생했습니다: ${e.toString()}';
+        _isLoading = false;
+      });
+
+      // 사용자에게 알림
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('퀘스트를 불러오는 중 문제가 발생했습니다. 다시 시도해주세요.'),
+          duration: Duration(seconds: 3),
+          action: SnackBarAction(
+            label: '다시 시도',
+            onPressed: _fetchQuests,
           ),
         ),
+      );
+    }
+  }
+
+  // 퀘스트 완료 처리
+  Future<void> _completeQuest(Quest quest) async {
+    try {
+      // 이미 완료된 퀘스트인지 확인
+      if (_completedQuests[quest.questId] == true) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("이미 완료된 퀘스트입니다.")),
+        );
+        return;
+      }
+
+      // 📷 카메라 인증이 필요한 퀘스트의 경우
+      if (quest.needImage) {
+        debugPrint("카메라 필요 여부: ${quest.needImage}");
+
+        // 카메라 화면으로 이동
+        final result = await Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => Camera_permission(
+              questId: quest.questId,
+              questTitle: quest.title,
+              verificationType: "camera",
+            ),
+          ),
+        );
+
+        // 인증 실패 시 완료 처리 안 함
+        if (result != true) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text("퀘스트 인증이 취소되었습니다.")),
+          );
+          return;
+        }
+      }
+
+      // UI에서 완료 상태 표시 (API 요청과 무관하게)
+      setState(() {
+        _completedQuests[quest.questId] = true;
+      });
+      await _saveCompletedQuests();
+
+      // API 요청 (사진이 필요 없는 경우 포함)
+      final headers = {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+      };
+
+      if (ApiService.authToken != null) {
+        headers['Authorization'] = ApiService.authToken!;
+      }
+
+      try {
+        int userId = ApiService.userId ?? 0;
+
+        ApiService.completeQuest(
+          questId: quest.questId,
+          userId: userId,
+          headers: headers,
+        ).then((success) {
+          if (!success) {
+            debugPrint('API 호출은 실패했지만 로컬에서는 완료 상태 유지');
+          }
+        });
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("퀘스트가 완료되었습니다!")),
+        );
+
+        // 다음 스테이지 잠금 해제 여부 확인
+        _checkStageUnlock();
+      } catch (e) {
+        debugPrint('퀘스트 API 호출 오류: $e');
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("오류 발생: 로컬에서 완료 처리됨")),
+        );
+        _checkStageUnlock();
+      }
+    } catch (e) {
+      debugPrint('퀘스트 완료 오류: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("오류 발생: 로컬에서 완료 처리됨")),
+      );
+
+      // 오류 발생 시에도 완료 상태 유지
+      setState(() {
+        _completedQuests[quest.questId] = true;
+      });
+      await _saveCompletedQuests();
+      _checkStageUnlock();
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    // 스테이지별로 퀘스트 그룹화
+    Map<int, List<Quest>> questsByStage = {};
+    for (var quest in _quests) {
+      if (!questsByStage.containsKey(quest.stageId)) {
+        questsByStage[quest.stageId] = [];
+      }
+      questsByStage[quest.stageId]!.add(quest);
+    }
+
+    // 스테이지 목록 (정렬됨)
+    List<int> stages = questsByStage.keys.toList()..sort();
+
+    // 스테이지별 완료 상태
+    Map<int, bool> stageCompletionStatus = {};
+    for (var stage in stages) {
+      final stageQuests = questsByStage[stage] ?? [];
+      bool allCompleted = stageQuests.isNotEmpty;
+      for (var quest in stageQuests) {
+        if (_completedQuests[quest.questId] != true) {
+          allCompleted = false;
+          break;
+        }
+      }
+      stageCompletionStatus[stage] = allCompleted;
+    }
+
+    return Scaffold(
+      backgroundColor: Colors.white,
+      body: SafeArea(
+        child: _isLoading
+            ? const Center(
+                child: CircularProgressIndicator(
+                  valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF816856)),
+                ),
+              )
+            : _errorMessage.isNotEmpty
+                ? Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          _errorMessage,
+                          style: const TextStyle(
+                            color: Colors.red,
+                            fontSize: 16,
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                        ElevatedButton(
+                          onPressed: _fetchQuests,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xFF9E8976),
+                          ),
+                          child: const Text("다시 시도"),
+                        ),
+                      ],
+                    ),
+                  )
+                : ListView.builder(
+                    itemCount: stages.length + 1, // +1은 안내 메시지를 위한 것입니다
+                    itemBuilder: (context, index) {
+                      if (index == stages.length) {
+                        // 마지막에 점 세 개 표시
+                        return const Center(
+                          child: Padding(
+                            padding: EdgeInsets.symmetric(vertical: 16.0),
+                            child: Column(
+                              children: [
+                                Text("·",
+                                    style: TextStyle(
+                                        fontSize: 24,
+                                        fontWeight: FontWeight.bold)),
+                                Text("·",
+                                    style: TextStyle(
+                                        fontSize: 24,
+                                        fontWeight: FontWeight.bold)),
+                                Text("·",
+                                    style: TextStyle(
+                                        fontSize: 24,
+                                        fontWeight: FontWeight.bold)),
+                              ],
+                            ),
+                          ),
+                        );
+                      }
+
+                      final stageId = stages[index];
+                      final stageQuests = questsByStage[stageId] ?? [];
+                      final bool isUnlocked = stageId <= _currentStage;
+                      final bool isCompleted =
+                          stageCompletionStatus[stageId] ?? false;
+
+                      return Column(
+                        children: [
+                          // 스테이지 헤더
+                          Container(
+                            width: double.infinity,
+                            color: isCompleted
+                                ? const Color(0xFF5D4037)
+                                : const Color(0xFF8B7363),
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 16, vertical: 12),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Row(
+                                  children: [
+                                    Text(
+                                      "${stageId}단계",
+                                      style: const TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                    if (isCompleted)
+                                      Container(
+                                        margin: const EdgeInsets.only(left: 8),
+                                        padding: const EdgeInsets.symmetric(
+                                            horizontal: 8, vertical: 2),
+                                        decoration: BoxDecoration(
+                                          color: Colors.white.withOpacity(0.3),
+                                          borderRadius:
+                                              BorderRadius.circular(10),
+                                        ),
+                                        child: const Text(
+                                          "완료",
+                                          style: TextStyle(
+                                            color: Colors.white,
+                                            fontSize: 12,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                      ),
+                                  ],
+                                ),
+                                Icon(
+                                  isUnlocked
+                                      ? (isCompleted
+                                          ? Icons.check_circle
+                                          : Icons.arrow_drop_up)
+                                      : Icons.lock,
+                                  color: Colors.white,
+                                  size: 24,
+                                ),
+                              ],
+                            ),
+                          ),
+
+                          // 잠금 해제된 단계만 퀘스트 보여주기
+                          if (isUnlocked)
+                            Container(
+                              color: const Color(0xFFD1BFB0),
+                              child: ListView.builder(
+                                shrinkWrap: true,
+                                physics: const NeverScrollableScrollPhysics(),
+                                itemCount: stageQuests.length,
+                                itemBuilder: (context, questIndex) {
+                                  final quest = stageQuests[questIndex];
+                                  final bool isCompleted =
+                                      _completedQuests[quest.questId] ?? false;
+
+                                  return QuestListItem(
+                                    quest: quest,
+                                    isCompleted: isCompleted,
+                                    onComplete: () => _completeQuest(quest),
+                                    onCameraPressed: () =>
+                                        _completeQuest(quest),
+                                  );
+                                },
+                              ),
+                            ),
+                        ],
+                      );
+                    },
+                  ),
       ),
     );
   }
