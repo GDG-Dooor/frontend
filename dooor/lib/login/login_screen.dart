@@ -118,27 +118,27 @@ class _LoginScreenState extends State<LoginScreen> {
 
               const SizedBox(height: 20),
 
-              // 로그인 버튼
-              SizedBox(
-                width: 300,
-                height: 50,
-                child: ElevatedButton(
-                  onPressed: _login,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFFBEADA0),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(20),
+              // 로그인 버튼// 로그인 버튼
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 30),
+                child: SizedBox(
+                  height: 50,
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: _login,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFFBEADA0),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(20),
+                      ),
                     ),
-                  ),
-                  child: const Text(
-                    '로그인',
-                    style: TextStyle(color: Colors.black54, fontSize: 18),
+                    child: const Text(
+                      '로그인',
+                      style: TextStyle(color: Colors.black54, fontSize: 18),
+                    ),
                   ),
                 ),
               ),
-
-              const SizedBox(height: 0),
-
               // 하단 텍스트 회원가입 버튼
               Row(
                 mainAxisAlignment: MainAxisAlignment.start, // 왼쪽 정렬
