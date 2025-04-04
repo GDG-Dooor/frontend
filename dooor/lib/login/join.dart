@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../services/api_service.dart';
 
 class RegistrationScreen extends StatefulWidget {
@@ -133,9 +134,21 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('회원가입이 완료되었습니다.')),
         );
+        if (signupResponse.statusCode == 200) {
+          // 성공 처리
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('회원가입이 완료되었습니다.')),
+          );
 
-        await Future.delayed(const Duration(seconds: 1));
+          // ✅ 이름 저장 (SharedPreferences 사용)
+          final prefs = await SharedPreferences.getInstance();
+          await prefs.setString('userName', _nameController.text.trim());
 
+          await Future.delayed(const Duration(seconds: 1));
+
+          if (!mounted) return;
+          Navigator.pop(context);
+        }
         if (!mounted) return;
         Navigator.pop(context);
       } else {
