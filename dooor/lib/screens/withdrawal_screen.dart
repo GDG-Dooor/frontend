@@ -42,17 +42,7 @@ class WithdrawalScreen extends StatelessWidget {
             ),
             const SizedBox(height: 8),
             const Text(
-              '※ 탈퇴 후 개인정보, 시간표 등의 데이터가 삭제되며, 복구할 수 없습니다.',
-              style: TextStyle(fontSize: 13, color: Colors.black54),
-            ),
-            const SizedBox(height: 8),
-            const Text(
-              '※ 다시 가입하여도, 계시판 등 이용 제한 기록은 초기화되지 않습니다.',
-              style: TextStyle(fontSize: 13, color: Colors.black54),
-            ),
-            const SizedBox(height: 8),
-            const Text(
-              '※ 작성한 게시물은 삭제되지 않으며, (알수없음)으로 닉네임이 표시됩니다.',
+              '※ 탈퇴 후 개인정보, 퀘스트 등의 데이터가 삭제되며, 복구할 수 없습니다.',
               style: TextStyle(fontSize: 13, color: Colors.black54),
             ),
             const SizedBox(height: 8),
