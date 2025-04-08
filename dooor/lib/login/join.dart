@@ -129,35 +129,24 @@ class _RegistrationScreenState extends State<RegistrationScreen> {
 
       if (!mounted) return;
 
-      if (signupResponse.statusCode == 200) {
+      if (signupResponse['success'] == true) {
         // 성공 처리
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('회원가입이 완료되었습니다.')),
+          SnackBar(content: Text(signupResponse['message'])),
         );
-        if (signupResponse.statusCode == 200) {
-          // 성공 처리
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('회원가입이 완료되었습니다.')),
-          );
 
-          // ✅ 이름 저장 (SharedPreferences 사용)
-          final prefs = await SharedPreferences.getInstance();
-          await prefs.setString('userName', _nameController.text.trim());
+        // ✅ 이름 저장 (SharedPreferences 사용)
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setString('userName', _nameController.text.trim());
 
-          await Future.delayed(const Duration(seconds: 1));
+        await Future.delayed(const Duration(seconds: 1));
 
-          if (!mounted) return;
-          Navigator.pop(context);
-        }
         if (!mounted) return;
         Navigator.pop(context);
       } else {
         // 실패 처리
-        final errorMessage = signupResponse.body.isNotEmpty
-            ? signupResponse.body
-            : '회원가입에 실패했습니다.';
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(errorMessage)),
+          SnackBar(content: Text(signupResponse['message'])),
         );
       }
     } catch (e) {

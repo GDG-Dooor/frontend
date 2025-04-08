@@ -1,14 +1,14 @@
 class Stage {
   final int stageId;
   final String title;
-  final String? description;
-  final List<int> questId;
+  final String description;
+  final List<int> questIds;
 
   Stage({
     required this.stageId,
     required this.title,
-    this.description,
-    required this.questId,
+    required this.description,
+    required this.questIds,
   });
 
   factory Stage.fromJson(Map<String, dynamic> json) {
@@ -16,7 +16,16 @@ class Stage {
       stageId: json['stageId'] as int,
       title: json['title'] as String,
       description: json['description'] as String,
-      questId: List<int>.from(json['questId'] as List),
+      questIds: List<int>.from(json['questId'] ?? []),
     );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'stageId': stageId,
+      'title': title,
+      'description': description,
+      'questId': questIds,
+    };
   }
 }

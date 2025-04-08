@@ -15,11 +15,11 @@ class Quest {
 
   factory Quest.fromJson(Map<String, dynamic> json) {
     return Quest(
-      questId: json['questId'] as int? ?? 0,
-      title: json['title'] as String? ?? '',
-      description: json['description'] as String? ?? '',
-      stageId: json['stageId'] as int? ?? 0,
-      needImage: json['needImage'] as bool? ?? false,
+      questId: json['questId'] as int,
+      title: json['title'] as String,
+      description: json['description'] as String,
+      stageId: json['stageId'] as int,
+      needImage: json['needImage'] as bool,
     );
   }
 

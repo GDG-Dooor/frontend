@@ -1,7 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_project_final/loading.dart';
+import 'package:flutter_project_final/services/token_service.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  // 토큰 서비스 초기화 및 토큰 로드
+  final tokenService = TokenService();
+  await tokenService.loadToken();
+
   runApp(const MyApp());
 }
 

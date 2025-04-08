@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_project_final/home/chatscreen.dart';
+import '../screens/chat_screen.dart';
 
 class HomePage extends StatelessWidget {
   const HomePage({super.key});
