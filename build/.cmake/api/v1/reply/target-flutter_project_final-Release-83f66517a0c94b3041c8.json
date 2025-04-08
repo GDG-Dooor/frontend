@@ -2,10 +2,10 @@
 	"artifacts" : 
 	[
 		{
-			"path" : "runner/Profile/flutter_project_final.exe"
+			"path" : "runner/Release/flutter_project_final.exe"
 		},
 		{
-			"path" : "runner/Profile/flutter_project_final.pdb"
+			"path" : "runner/Release/flutter_project_final.pdb"
 		}
 	],
 	"backtrace" : 1,
@@ -365,16 +365,16 @@
 	"dependencies" : 
 	[
 		{
+			"backtrace" : 4,
+			"id" : "flutter_wrapper_app::@2bb09fbb03a373b2cb34"
+		},
+		{
 			"backtrace" : 12,
 			"id" : "flutter_assemble::@2bb09fbb03a373b2cb34"
 		},
 		{
 			"backtrace" : 8,
 			"id" : "file_selector_windows_plugin::@24329985f05541c6c489"
-		},
-		{
-			"backtrace" : 4,
-			"id" : "flutter_wrapper_app::@2bb09fbb03a373b2cb34"
 		},
 		{
 			"backtrace" : 9,
@@ -391,7 +391,7 @@
 		[
 			{
 				"backtrace" : 3,
-				"path" : "C:/Users/MINYONG/Desktop/frontend/build/runner/Profile"
+				"path" : "C:/Users/MINYONG/Desktop/frontend/build/runner/Release"
 			}
 		],
 		"prefix" : 
@@ -413,7 +413,7 @@
 			},
 			{
 				"backtrace" : 4,
-				"fragment" : "..\\flutter\\Profile\\flutter_wrapper_app.lib",
+				"fragment" : "..\\flutter\\Release\\flutter_wrapper_app.lib",
 				"role" : "libraries"
 			},
 			{
@@ -423,12 +423,12 @@
 			},
 			{
 				"backtrace" : 8,
-				"fragment" : "..\\plugins\\file_selector_windows\\Profile\\file_selector_windows_plugin.lib",
+				"fragment" : "..\\plugins\\file_selector_windows\\Release\\file_selector_windows_plugin.lib",
 				"role" : "libraries"
 			},
 			{
 				"backtrace" : 9,
-				"fragment" : "..\\plugins\\permission_handler_windows\\Profile\\permission_handler_windows_plugin.lib",
+				"fragment" : "..\\plugins\\permission_handler_windows\\Release\\permission_handler_windows_plugin.lib",
 				"role" : "libraries"
 			},
 			{

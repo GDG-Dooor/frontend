@@ -2,13 +2,13 @@
 	"artifacts" : 
 	[
 		{
-			"path" : "plugins/permission_handler_windows/Debug/permission_handler_windows_plugin.dll"
+			"path" : "plugins/file_selector_windows/Profile/file_selector_windows_plugin.dll"
 		},
 		{
-			"path" : "plugins/permission_handler_windows/Debug/permission_handler_windows_plugin.lib"
+			"path" : "plugins/file_selector_windows/Profile/file_selector_windows_plugin.lib"
 		},
 		{
-			"path" : "plugins/permission_handler_windows/Debug/permission_handler_windows_plugin.pdb"
+			"path" : "plugins/file_selector_windows/Profile/file_selector_windows_plugin.pdb"
 		}
 	],
 	"backtrace" : 1,
@@ -23,12 +23,11 @@
 			"apply_standard_settings",
 			"target_compile_definitions",
 			"add_definitions",
-			"include_directories",
 			"target_compile_features"
 		],
 		"files" : 
 		[
-			"flutter/ephemeral/.plugin_symlinks/permission_handler_windows/windows/CMakeLists.txt",
+			"flutter/ephemeral/.plugin_symlinks/file_selector_windows/windows/CMakeLists.txt",
 			"flutter/CMakeLists.txt",
 			"CMakeLists.txt"
 		],
@@ -40,13 +39,13 @@
 			{
 				"command" : 0,
 				"file" : 0,
-				"line" : 43,
+				"line" : 20,
 				"parent" : 0
 			},
 			{
 				"command" : 1,
 				"file" : 0,
-				"line" : 54,
+				"line" : 30,
 				"parent" : 0
 			},
 			{
@@ -67,7 +66,7 @@
 			{
 				"command" : 4,
 				"file" : 0,
-				"line" : 47,
+				"line" : 25,
 				"parent" : 0
 			},
 			{
@@ -83,15 +82,9 @@
 				"parent" : 6
 			},
 			{
-				"command" : 3,
-				"file" : 0,
-				"line" : 50,
-				"parent" : 0
-			},
-			{
 				"command" : 5,
 				"file" : 0,
-				"line" : 51,
+				"line" : 27,
 				"parent" : 0
 			},
 			{
@@ -101,13 +94,7 @@
 				"command" : 6,
 				"file" : 2,
 				"line" : 33,
-				"parent" : 11
-			},
-			{
-				"command" : 5,
-				"file" : 2,
-				"line" : 45,
-				"parent" : 6
+				"parent" : 10
 			},
 			{
 				"command" : 5,
@@ -116,22 +103,16 @@
 				"parent" : 6
 			},
 			{
-				"command" : 7,
+				"command" : 5,
 				"file" : 0,
-				"line" : 41,
+				"line" : 33,
 				"parent" : 0
 			},
 			{
-				"command" : 8,
+				"command" : 7,
 				"file" : 2,
 				"line" : 41,
 				"parent" : 6
-			},
-			{
-				"command" : 8,
-				"file" : 0,
-				"line" : 49,
-				"parent" : 0
 			}
 		]
 	},
@@ -141,7 +122,7 @@
 			"compileCommandFragments" : 
 			[
 				{
-					"fragment" : "/DWIN32 /D_WINDOWS /W3 /GR /EHsc /MDd /Zi /Ob0 /Od /RTC1 -std:c++20"
+					"fragment" : "/DWIN32 /D_WINDOWS /W3 /GR /EHsc /MD /O2 /Ob2 /DNDEBUG -std:c++17"
 				},
 				{
 					"backtrace" : 7,
@@ -158,36 +139,32 @@
 				{
 					"backtrace" : 8,
 					"fragment" : "/EHsc"
-				},
-				{
-					"backtrace" : 9,
-					"fragment" : "/await"
 				}
 			],
 			"defines" : 
 			[
 				{
-					"backtrace" : 10,
+					"backtrace" : 9,
 					"define" : "FLUTTER_PLUGIN_IMPL"
 				},
 				{
-					"backtrace" : 12,
+					"backtrace" : 11,
 					"define" : "UNICODE"
 				},
 				{
-					"backtrace" : 13,
-					"define" : "_DEBUG"
-				},
-				{
-					"backtrace" : 14,
+					"backtrace" : 12,
 					"define" : "_HAS_EXCEPTIONS=0"
 				},
 				{
-					"backtrace" : 12,
+					"backtrace" : 13,
+					"define" : "_HAS_EXCEPTIONS=1"
+				},
+				{
+					"backtrace" : 11,
 					"define" : "_UNICODE"
 				},
 				{
-					"define" : "permission_handler_windows_plugin_EXPORTS"
+					"define" : "file_selector_windows_plugin_EXPORTS"
 				}
 			],
 			"includes" : 
@@ -199,11 +176,6 @@
 				{
 					"backtrace" : 2,
 					"path" : "C:/Users/MINYONG/Desktop/frontend/dooor/windows/flutter/ephemeral/cpp_client_wrapper/include"
-				},
-				{
-					"backtrace" : 15,
-					"isSystem" : true,
-					"path" : "C:/Users/MINYONG/Desktop/frontend/build/include"
 				}
 			],
 			"language" : "CXX",
@@ -211,43 +183,46 @@
 			{
 				"backtraces" : 
 				[
-					16,
-					17
+					14
 				],
-				"standard" : "20"
+				"standard" : "17"
 			},
 			"sourceIndexes" : 
 			[
-				1
+				0,
+				2,
+				4,
+				6,
+				8
 			]
 		}
 	],
 	"dependencies" : 
 	[
 		{
-			"backtrace" : 5,
-			"id" : "flutter_assemble::@2bb09fbb03a373b2cb34"
-		},
-		{
 			"backtrace" : 2,
 			"id" : "flutter_wrapper_plugin::@2bb09fbb03a373b2cb34"
+		},
+		{
+			"backtrace" : 5,
+			"id" : "flutter_assemble::@2bb09fbb03a373b2cb34"
 		},
 		{
 			"id" : "ZERO_CHECK::@6890427a1f51a3e7e1df"
 		}
 	],
-	"id" : "permission_handler_windows_plugin::@15851dc22c812b45487c",
+	"id" : "file_selector_windows_plugin::@24329985f05541c6c489",
 	"link" : 
 	{
 		"commandFragments" : 
 		[
 			{
-				"fragment" : "/machine:x64 /debug /INCREMENTAL",
+				"fragment" : "/machine:x64 /INCREMENTAL:NO",
 				"role" : "flags"
 			},
 			{
 				"backtrace" : 2,
-				"fragment" : "..\\..\\flutter\\Debug\\flutter_wrapper_plugin.lib",
+				"fragment" : "..\\..\\flutter\\Profile\\flutter_wrapper_plugin.lib",
 				"role" : "libraries"
 			},
 			{
@@ -262,27 +237,35 @@
 		],
 		"language" : "CXX"
 	},
-	"name" : "permission_handler_windows_plugin",
-	"nameOnDisk" : "permission_handler_windows_plugin.dll",
+	"name" : "file_selector_windows_plugin",
+	"nameOnDisk" : "file_selector_windows_plugin.dll",
 	"paths" : 
 	{
-		"build" : "plugins/permission_handler_windows",
-		"source" : "flutter/ephemeral/.plugin_symlinks/permission_handler_windows/windows"
+		"build" : "plugins/file_selector_windows",
+		"source" : "flutter/ephemeral/.plugin_symlinks/file_selector_windows/windows"
 	},
 	"sourceGroups" : 
 	[
 		{
-			"name" : "Header Files",
-			"sourceIndexes" : 
-			[
-				0
-			]
-		},
-		{
 			"name" : "Source Files",
 			"sourceIndexes" : 
 			[
-				1
+				0,
+				2,
+				4,
+				6,
+				8
+			]
+		},
+		{
+			"name" : "Header Files",
+			"sourceIndexes" : 
+			[
+				1,
+				3,
+				5,
+				7,
+				9
 			]
 		}
 	],
@@ -290,13 +273,57 @@
 	[
 		{
 			"backtrace" : 1,
-			"path" : "flutter/ephemeral/.plugin_symlinks/permission_handler_windows/windows/include/permission_handler_windows/permission_handler_windows_plugin.h",
+			"compileGroupIndex" : 0,
+			"path" : "flutter/ephemeral/.plugin_symlinks/file_selector_windows/windows/file_selector_windows.cpp",
 			"sourceGroupIndex" : 0
 		},
 		{
 			"backtrace" : 1,
+			"path" : "flutter/ephemeral/.plugin_symlinks/file_selector_windows/windows/include/file_selector_windows/file_selector_windows.h",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 1,
 			"compileGroupIndex" : 0,
-			"path" : "flutter/ephemeral/.plugin_symlinks/permission_handler_windows/windows/permission_handler_windows_plugin.cpp",
+			"path" : "flutter/ephemeral/.plugin_symlinks/file_selector_windows/windows/file_dialog_controller.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"path" : "flutter/ephemeral/.plugin_symlinks/file_selector_windows/windows/file_dialog_controller.h",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 0,
+			"path" : "flutter/ephemeral/.plugin_symlinks/file_selector_windows/windows/file_selector_plugin.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"path" : "flutter/ephemeral/.plugin_symlinks/file_selector_windows/windows/file_selector_plugin.h",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 0,
+			"path" : "flutter/ephemeral/.plugin_symlinks/file_selector_windows/windows/messages.g.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"path" : "flutter/ephemeral/.plugin_symlinks/file_selector_windows/windows/messages.g.h",
+			"sourceGroupIndex" : 1
+		},
+		{
+			"backtrace" : 1,
+			"compileGroupIndex" : 0,
+			"path" : "flutter/ephemeral/.plugin_symlinks/file_selector_windows/windows/string_utils.cpp",
+			"sourceGroupIndex" : 0
+		},
+		{
+			"backtrace" : 1,
+			"path" : "flutter/ephemeral/.plugin_symlinks/file_selector_windows/windows/string_utils.h",
 			"sourceGroupIndex" : 1
 		}
 	],

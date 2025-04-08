@@ -2,13 +2,13 @@
 	"artifacts" : 
 	[
 		{
-			"path" : "plugins/file_selector_windows/Profile/file_selector_windows_plugin.dll"
+			"path" : "plugins/file_selector_windows/Release/file_selector_windows_plugin.dll"
 		},
 		{
-			"path" : "plugins/file_selector_windows/Profile/file_selector_windows_plugin.lib"
+			"path" : "plugins/file_selector_windows/Release/file_selector_windows_plugin.lib"
 		},
 		{
-			"path" : "plugins/file_selector_windows/Profile/file_selector_windows_plugin.pdb"
+			"path" : "plugins/file_selector_windows/Release/file_selector_windows_plugin.pdb"
 		}
 	],
 	"backtrace" : 1,
@@ -200,12 +200,12 @@
 	"dependencies" : 
 	[
 		{
-			"backtrace" : 5,
-			"id" : "flutter_assemble::@2bb09fbb03a373b2cb34"
-		},
-		{
 			"backtrace" : 2,
 			"id" : "flutter_wrapper_plugin::@2bb09fbb03a373b2cb34"
+		},
+		{
+			"backtrace" : 5,
+			"id" : "flutter_assemble::@2bb09fbb03a373b2cb34"
 		},
 		{
 			"id" : "ZERO_CHECK::@6890427a1f51a3e7e1df"
@@ -222,7 +222,7 @@
 			},
 			{
 				"backtrace" : 2,
-				"fragment" : "..\\..\\flutter\\Profile\\flutter_wrapper_plugin.lib",
+				"fragment" : "..\\..\\flutter\\Release\\flutter_wrapper_plugin.lib",
 				"role" : "libraries"
 			},
 			{

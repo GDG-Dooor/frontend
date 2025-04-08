@@ -2,13 +2,13 @@
 	"artifacts" : 
 	[
 		{
-			"path" : "plugins/permission_handler_windows/Profile/permission_handler_windows_plugin.dll"
+			"path" : "plugins/permission_handler_windows/Debug/permission_handler_windows_plugin.dll"
 		},
 		{
-			"path" : "plugins/permission_handler_windows/Profile/permission_handler_windows_plugin.lib"
+			"path" : "plugins/permission_handler_windows/Debug/permission_handler_windows_plugin.lib"
 		},
 		{
-			"path" : "plugins/permission_handler_windows/Profile/permission_handler_windows_plugin.pdb"
+			"path" : "plugins/permission_handler_windows/Debug/permission_handler_windows_plugin.pdb"
 		}
 	],
 	"backtrace" : 1,
@@ -106,6 +106,12 @@
 			{
 				"command" : 5,
 				"file" : 2,
+				"line" : 45,
+				"parent" : 6
+			},
+			{
+				"command" : 5,
+				"file" : 2,
 				"line" : 44,
 				"parent" : 6
 			},
@@ -135,7 +141,7 @@
 			"compileCommandFragments" : 
 			[
 				{
-					"fragment" : "/DWIN32 /D_WINDOWS /W3 /GR /EHsc /MD /O2 /Ob2 /DNDEBUG -std:c++20"
+					"fragment" : "/DWIN32 /D_WINDOWS /W3 /GR /EHsc /MDd /Zi /Ob0 /Od /RTC1 -std:c++20"
 				},
 				{
 					"backtrace" : 7,
@@ -170,6 +176,10 @@
 				},
 				{
 					"backtrace" : 13,
+					"define" : "_DEBUG"
+				},
+				{
+					"backtrace" : 14,
 					"define" : "_HAS_EXCEPTIONS=0"
 				},
 				{
@@ -191,7 +201,7 @@
 					"path" : "C:/Users/MINYONG/Desktop/frontend/dooor/windows/flutter/ephemeral/cpp_client_wrapper/include"
 				},
 				{
-					"backtrace" : 14,
+					"backtrace" : 15,
 					"isSystem" : true,
 					"path" : "C:/Users/MINYONG/Desktop/frontend/build/include"
 				}
@@ -201,8 +211,8 @@
 			{
 				"backtraces" : 
 				[
-					15,
-					16
+					16,
+					17
 				],
 				"standard" : "20"
 			},
@@ -215,12 +225,12 @@
 	"dependencies" : 
 	[
 		{
-			"backtrace" : 5,
-			"id" : "flutter_assemble::@2bb09fbb03a373b2cb34"
-		},
-		{
 			"backtrace" : 2,
 			"id" : "flutter_wrapper_plugin::@2bb09fbb03a373b2cb34"
+		},
+		{
+			"backtrace" : 5,
+			"id" : "flutter_assemble::@2bb09fbb03a373b2cb34"
 		},
 		{
 			"id" : "ZERO_CHECK::@6890427a1f51a3e7e1df"
@@ -232,12 +242,12 @@
 		"commandFragments" : 
 		[
 			{
-				"fragment" : "/machine:x64 /INCREMENTAL:NO",
+				"fragment" : "/machine:x64 /debug /INCREMENTAL",
 				"role" : "flags"
 			},
 			{
 				"backtrace" : 2,
-				"fragment" : "..\\..\\flutter\\Profile\\flutter_wrapper_plugin.lib",
+				"fragment" : "..\\..\\flutter\\Debug\\flutter_wrapper_plugin.lib",
 				"role" : "libraries"
 			},
 			{
