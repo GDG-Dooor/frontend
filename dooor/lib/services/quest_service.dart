@@ -5,6 +5,7 @@ import '../config/api_config.dart';
 import '../services/token_service.dart';
 import '../models/quest_progress.dart';
 import 'package:flutter/foundation.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class QuestService {
   final TokenService _tokenService = TokenService();
@@ -105,7 +106,7 @@ class QuestService {
       }
 
       final response = await http.post(
-        Uri.parse('${ApiConfig.baseUrl}/api/quests/complete')
+        Uri.parse('${ApiConfig.baseUrl}/quests/complete')
             .replace(queryParameters: {
           'userId': userId.toString(),
           'questId': questId.toString(),
@@ -128,28 +129,29 @@ class QuestService {
   }
 
   // 퀘스트 이미지 검증
-  Future<Map<String, dynamic>> validateQuestImage(String imageUrl) async {
+  Future<bool> validateQuestImage(String imageUrl) async {
     try {
       final token = await TokenService.getAccessToken();
       if (token == null) {
-        throw Exception('토큰이 없습니다.');
+        throw Exception('인증 토큰이 없습니다.');
       }
 
       final response = await http.post(
-        Uri.parse('${ApiConfig.baseUrl}/api/quests/validate'),
+        Uri.parse('${ApiConfig.baseUrl}/quests/validate'),
         headers: {
           'Content-Type': 'application/json',
           'Accept': 'application/json',
           'Authorization': token,
         },
-        body: json.encode({'image': imageUrl}),
+        body: jsonEncode({'image': imageUrl}),
       );
 
       debugPrint('이미지 검증 응답 상태: ${response.statusCode}');
       debugPrint('이미지 검증 응답 본문: ${response.body}');
 
       if (response.statusCode == 200) {
-        return json.decode(response.body);
+        final data = jsonDecode(response.body);
+        return data['is_receipt'] == true;
       } else {
         throw Exception('이미지 검증에 실패했습니다. (${response.statusCode})');
       }
@@ -164,11 +166,11 @@ class QuestService {
     try {
       final token = await TokenService.getAccessToken();
       if (token == null) {
-        throw Exception('토큰이 없습니다.');
+        throw Exception('인증 토큰이 없습니다.');
       }
 
       final response = await http.get(
-        Uri.parse('${ApiConfig.baseUrl}/api/user/quest-id'),
+        Uri.parse('${ApiConfig.baseUrl}/user/quest-id'),
         headers: {
           'Content-Type': 'application/json',
           'Accept': 'application/json',
@@ -176,18 +178,16 @@ class QuestService {
         },
       );
 
-      debugPrint('퀘스트 진행 상황 조회 요청 URL: ${ApiConfig.baseUrl}/api/user/quest-id');
-      debugPrint('퀘스트 진행 상황 조회 요청 헤더: ${response.request?.headers}');
-      debugPrint('퀘스트 진행 상황 조회 응답 상태: ${response.statusCode}');
-      debugPrint('퀘스트 진행 상황 조회 응답 본문: ${response.body}');
+      debugPrint('현재 퀘스트 ID 조회 응답 상태: ${response.statusCode}');
+      debugPrint('현재 퀘스트 ID 조회 응답 본문: ${response.body}');
 
       if (response.statusCode == 200) {
         return int.parse(response.body);
       } else {
-        throw Exception('퀘스트 진행 상황을 불러오는데 실패했습니다. (${response.statusCode})');
+        throw Exception('현재 퀘스트 ID를 불러오는데 실패했습니다. (${response.statusCode})');
       }
     } catch (e) {
-      debugPrint('퀘스트 진행 상황 조회 오류: $e');
+      debugPrint('현재 퀘스트 ID 조회 오류: $e');
       rethrow;
     }
   }
@@ -197,11 +197,11 @@ class QuestService {
     try {
       final token = await TokenService.getAccessToken();
       if (token == null) {
-        throw Exception('토큰이 없습니다.');
+        throw Exception('인증 토큰이 없습니다.');
       }
 
       final response = await http.get(
-        Uri.parse('${ApiConfig.baseUrl}/api/user/quest-cleared'),
+        Uri.parse('${ApiConfig.baseUrl}/user/quest-cleared'),
         headers: {
           'Content-Type': 'application/json',
           'Accept': 'application/json',
@@ -226,27 +226,78 @@ class QuestService {
   // 퀘스트 진행 상태 조회
   Future<List<bool>> getQuestProgress() async {
     try {
+      final token = await TokenService.getAccessToken();
+      if (token == null) {
+        debugPrint('인증 토큰이 없습니다. 로그인이 필요합니다.');
+        return _getLocalQuestProgress();
+      }
+
+      // 현재 퀘스트 ID와 완료 여부를 가져옵니다
       final currentQuestId = await getCurrentQuestId();
-      final isCleared = await isQuestCleared();
+      final isCurrentQuestCleared = await isQuestCleared();
 
-      // 임시로 7개의 퀘스트가 있다고 가정
-      final List<bool> progress = List.filled(7, false);
+      debugPrint('현재 퀘스트 ID: $currentQuestId');
+      debugPrint('현재 퀘스트 완료 여부: $isCurrentQuestCleared');
 
-      // 현재 퀘스트까지 완료된 것으로 표시
+      // 퀘스트 진행 상태 리스트 생성
+      final List<bool> progress = List.filled(7, false); // 임시로 7개로 설정
+
+      // 현재 퀘스트 이전까지는 모두 완료 처리
       for (int i = 0; i < currentQuestId - 1; i++) {
         progress[i] = true;
       }
 
-      // 현재 퀘스트의 완료 여부 반영
+      // 현재 퀘스트의 완료 여부 설정
       if (currentQuestId > 0 && currentQuestId <= progress.length) {
-        progress[currentQuestId - 1] = isCleared;
+        progress[currentQuestId - 1] = isCurrentQuestCleared;
       }
+
+      // 로컬 저장소에도 저장
+      await _saveLocalQuestProgress(progress);
 
       return progress;
     } catch (e) {
       debugPrint('퀘스트 진행 상태 조회 오류: $e');
-      rethrow;
+      return _getLocalQuestProgress();
     }
+  }
+
+  // 로컬 퀘스트 진행 상태 저장
+  Future<void> _saveLocalQuestProgress(List<bool> progress) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final Map<String, bool> completedQuests = {};
+      for (int i = 0; i < progress.length; i++) {
+        completedQuests[(i + 1).toString()] = progress[i];
+      }
+      await prefs.setString('completed_quests', jsonEncode(completedQuests));
+    } catch (e) {
+      debugPrint('로컬 퀘스트 진행 상태 저장 오류: $e');
+    }
+  }
+
+  // 로컬 퀘스트 진행 상태 조회
+  List<bool> _getLocalQuestProgress() {
+    try {
+      final prefs = SharedPreferences.getInstance();
+      final completedQuestsJson =
+          prefs.then((prefs) => prefs.getString('completed_quests'));
+      if (completedQuestsJson != null) {
+        final Map<String, dynamic> decoded =
+            jsonDecode(completedQuestsJson as String);
+        final List<bool> progress = List.filled(7, false);
+        decoded.forEach((key, value) {
+          final index = int.parse(key) - 1;
+          if (index >= 0 && index < progress.length) {
+            progress[index] = value as bool;
+          }
+        });
+        return progress;
+      }
+    } catch (e) {
+      debugPrint('로컬 퀘스트 진행 상태 조회 오류: $e');
+    }
+    return List.filled(7, false);
   }
 }
 

@@ -51,13 +51,24 @@ class TokenService {
   }
 
   Future<void> saveTokens(String accessToken, String refreshToken) async {
-    _token = 'Bearer $accessToken';
-    _refreshToken = refreshToken;
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString(_tokenKey, 'Bearer $accessToken');
-    await prefs.setString(_refreshTokenKey, refreshToken);
-    debugPrint('토큰 저장 완료: $_token');
-    debugPrint('리프레시 토큰 저장 완료: $_refreshToken');
+    try {
+      _token = accessToken.startsWith('Bearer ')
+          ? accessToken
+          : 'Bearer $accessToken';
+      _refreshToken = refreshToken;
+
+      final prefs = await SharedPreferences.getInstance();
+      // _tokenKey와 _accessTokenKey 모두에 저장
+      await prefs.setString(_tokenKey, _token!);
+      await prefs.setString(_accessTokenKey, _token!);
+      await prefs.setString(_refreshTokenKey, refreshToken);
+
+      debugPrint('액세스 토큰 저장 완료: $_token');
+      debugPrint('리프레시 토큰 저장 완료: $_refreshToken');
+    } catch (e) {
+      debugPrint('토큰 저장 중 오류 발생: $e');
+      rethrow;
+    }
   }
 
   Future<String?> getToken() async {
@@ -124,8 +135,8 @@ class TokenService {
       debugPrint('토큰 로드 시작');
       final prefs = await SharedPreferences.getInstance();
 
-      // 저장된 토큰 로드
-      _token = prefs.getString(_tokenKey);
+      // 저장된 토큰 로드 (_tokenKey와 _accessTokenKey 모두 확인)
+      _token = prefs.getString(_accessTokenKey) ?? prefs.getString(_tokenKey);
       debugPrint('저장소에서 로드된 토큰: $_token');
 
       // 저장된 사용자 ID 로드
@@ -156,8 +167,6 @@ class TokenService {
             if (payloadJson['sub'] != null) {
               _userId = payloadJson['sub'].toString();
               debugPrint('토큰에서 추출된 사용자 ID: $_userId');
-
-              // 사용자 ID 업데이트
               await saveUserId(_userId!);
             }
 
@@ -166,7 +175,7 @@ class TokenService {
               debugPrint('토큰에서 추출된 사용자 이름: $_userName');
             }
 
-            // 토큰 만료 체크
+            // 토큰 만료 체크 및 갱신
             if (isTokenExpired()) {
               debugPrint('토큰이 만료되었습니다. 재발급을 시도합니다.');
               final refreshed = await refreshAccessToken();
@@ -372,8 +381,27 @@ class TokenService {
   }
 
   static Future<String?> getAccessToken() async {
-    final prefs = await SharedPreferences.getInstance();
-    return prefs.getString(_accessTokenKey);
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      // _tokenKey와 _accessTokenKey 모두 확인
+      String? token =
+          prefs.getString(_accessTokenKey) ?? prefs.getString(_tokenKey);
+
+      if (token == null) {
+        debugPrint('저장된 토큰이 없습니다.');
+        return null;
+      }
+
+      // Bearer 토큰 형식으로 반환
+      if (!token.startsWith('Bearer ')) {
+        token = 'Bearer $token';
+      }
+
+      return token;
+    } catch (e) {
+      debugPrint('토큰 가져오기 오류: $e');
+      return null;
+    }
   }
 
   static Future<void> saveAccessToken(String token) async {

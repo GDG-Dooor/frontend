@@ -8,6 +8,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../services/token_service.dart';
 import 'package:http/http.dart' as http;
 import '../config/api_config.dart';
+import '../services/quest_service.dart';
 
 class QuestScreen extends StatefulWidget {
   const QuestScreen({super.key});
@@ -27,7 +28,7 @@ class _QuestScreenState extends State<QuestScreen> {
   @override
   void initState() {
     super.initState();
-    _loadCompletedQuests();
+    _loadQuestProgress();
     _fetchQuests();
   }
 
@@ -65,6 +66,35 @@ class _QuestScreenState extends State<QuestScreen> {
       debugPrint('저장된 현재 스테이지: $_currentStage');
     } catch (e) {
       debugPrint('완료된 퀘스트 저장 오류: $e');
+    }
+  }
+
+  // 퀘스트 진행 상태 로드
+  Future<void> _loadQuestProgress() async {
+    try {
+      final questService = QuestService();
+      final progress = await questService.getQuestProgress();
+
+      // List<bool>를 Map<int, bool>로 변환
+      final Map<int, bool> completedQuests = {};
+      for (int i = 0; i < progress.length; i++) {
+        completedQuests[i + 1] = progress[i];
+      }
+
+      setState(() {
+        _completedQuests = completedQuests;
+        // 현재 스테이지 계산 (완료된 퀘스트 중 가장 높은 스테이지 + 1)
+        _currentStage = completedQuests.entries
+            .where((entry) => entry.value)
+            .map((entry) => entry.key)
+            .fold(1, (max, stageId) => stageId > max ? stageId : max);
+      });
+
+      await _saveCompletedQuests();
+    } catch (e) {
+      debugPrint('퀘스트 진행 상태 로드 오류: $e');
+      // 오류 발생 시 로컬 저장소에서 로드
+      await _loadCompletedQuests();
     }
   }
 

@@ -11,6 +11,7 @@ import '../config/api_config.dart';
 import '../services/token_service.dart';
 import '../home/HomePage.dart';
 import '../home/home_bottom.dart';
+import '../services/quest_service.dart';
 
 class ChatScreen extends StatefulWidget {
   const ChatScreen({super.key});
@@ -28,6 +29,8 @@ class _ChatScreenState extends State<ChatScreen> {
   final TextEditingController _controller = TextEditingController();
   final ScrollController _scrollController = ScrollController();
   bool _isLoading = false;
+
+  final questService = QuestService();
 
   void _scrollToBottom() {
     if (_scrollController.hasClients) {
