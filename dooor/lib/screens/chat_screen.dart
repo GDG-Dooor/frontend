@@ -175,6 +175,11 @@ class _ChatScreenState extends State<ChatScreen> {
                                 margin: const EdgeInsets.symmetric(
                                     vertical: 4, horizontal: 8),
                                 padding: const EdgeInsets.all(12),
+                                constraints: BoxConstraints(
+                                  maxWidth:
+                                      MediaQuery.of(context).size.width * 0.7,
+                                  minWidth: 0,
+                                ),
                                 decoration: BoxDecoration(
                                   color: message['isUser']
                                       ? Colors.blue[100]
@@ -184,6 +189,7 @@ class _ChatScreenState extends State<ChatScreen> {
                                 child: Text(
                                   message['text'],
                                   style: const TextStyle(fontSize: 16),
+                                  softWrap: true,
                                 ),
                               ),
                             );
