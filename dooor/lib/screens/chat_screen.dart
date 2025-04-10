@@ -6,12 +6,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
+import 'package:flutter/foundation.dart';
 
 import '../config/api_config.dart';
 import '../services/token_service.dart';
 import '../home/HomePage.dart';
 import '../home/home_bottom.dart';
 import '../services/quest_service.dart';
+import '../services/chat_service.dart';
 
 class ChatScreen extends StatefulWidget {
   const ChatScreen({super.key});
@@ -21,83 +23,84 @@ class ChatScreen extends StatefulWidget {
 }
 
 class _ChatScreenState extends State<ChatScreen> {
-  final List<Map<String, dynamic>> messages = [
-    {"text": "안녕", "isUser": false},
-    {"text": "난 포이야", "isUser": false},
-  ];
-
-  final TextEditingController _controller = TextEditingController();
-  final ScrollController _scrollController = ScrollController();
+  final List<Map<String, dynamic>> _messages = [];
+  final TextEditingController _messageController = TextEditingController();
   bool _isLoading = false;
 
-  final questService = QuestService();
+  @override
+  void initState() {
+    super.initState();
+    _messages.add({
+      'text': '안녕! 난 포이야!',
+      'isUser': false,
+    });
+    _loadChatHistory();
+  }
 
-  void _scrollToBottom() {
-    if (_scrollController.hasClients) {
-      _scrollController.animateTo(
-        _scrollController.position.maxScrollExtent,
-        duration: const Duration(milliseconds: 300),
-        curve: Curves.easeOut,
+  Future<void> _loadChatHistory() async {
+    try {
+      setState(() {
+        _isLoading = true;
+      });
+
+      final userIdStr = await TokenService.getUserId();
+      if (userIdStr == null) {
+        throw Exception('사용자 ID를 가져올 수 없습니다.');
+      }
+
+      final userId = int.tryParse(userIdStr);
+      if (userId == null) {
+        throw Exception('유효하지 않은 사용자 ID입니다: $userIdStr');
+      }
+
+      final message = await ChatService.getPersonalizedMessage(userId);
+      setState(() {
+        _messages.add({
+          'text': message,
+          'isUser': false,
+        });
+      });
+    } catch (e) {
+      debugPrint('채팅 기록 로드 오류: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('채팅 기록을 불러오는데 실패했습니다: $e'),
+          backgroundColor: Colors.red,
+        ),
       );
+    } finally {
+      setState(() {
+        _isLoading = false;
+      });
     }
   }
 
-  Future<void> _sendMessage(String text) async {
-    if (text.trim().isEmpty) return;
+  Future<void> _sendMessage() async {
+    if (_messageController.text.isEmpty) return;
+
+    final message = _messageController.text;
+    _messageController.clear();
 
     setState(() {
-      messages.add({"text": text, "isUser": true});
-      _isLoading = true;
+      _messages.add({
+        'text': message,
+        'isUser': true,
+      });
     });
-    _controller.clear();
-    WidgetsBinding.instance.addPostFrameCallback((_) => _scrollToBottom());
 
     try {
-      final url = Uri.parse('http://15.164.103.136:8080/api/chat/message');
-      final token = tokenService.currentToken;
-      final headers = {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json',
-        if (token != null)
-          'Authorization':
-              token.startsWith('Bearer ') ? token : 'Bearer $token',
-      };
-      final response = await http.get(
-        url,
-        headers: headers,
-      );
-
-      print(response.statusCode);
-
-      if (!mounted) return;
-
-      if (response.statusCode == 200) {
-        final responseData = jsonDecode(utf8.decode(response.bodyBytes));
-        print(responseData);
-        print(response.body);
-        final botResponse = responseData['poi'];
-        if (botResponse != null) {
-          setState(() {
-            messages.add({"text": botResponse.toString(), "isUser": false});
-          });
-          WidgetsBinding.instance
-              .addPostFrameCallback((_) => _scrollToBottom());
-        }
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('메시지 전송 실패')),
-        );
-      }
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('네트워크 오류 발생')),
-      );
-    } finally {
-      if (mounted) {
-        setState(() {
-          _isLoading = false;
+      final response = await ChatService.sendMessage(message);
+      setState(() {
+        _messages.add({
+          'text': response,
+          'isUser': false,
         });
-      }
+      });
+    } catch (e) {
+      debugPrint('메시지 전송 오류: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('메시지 전송에 실패했습니다: $e')),
+      );
     }
   }
 
@@ -137,44 +140,55 @@ class _ChatScreenState extends State<ChatScreen> {
               ),
             ),
             Expanded(
-              child: ListView.builder(
-                controller: _scrollController,
-                padding: const EdgeInsets.symmetric(horizontal: 10),
-                itemCount: messages.length,
-                itemBuilder: (context, index) {
-                  final msg = messages[index];
-                  return Align(
-                    alignment: msg["isUser"] == true
-                        ? Alignment.centerRight
-                        : Alignment.centerLeft,
-                    child: Container(
-                      constraints: BoxConstraints(
-                        maxWidth: MediaQuery.of(context).size.width * 0.7,
+              child: _isLoading
+                  ? const Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          CircularProgressIndicator(),
+                          SizedBox(height: 16),
+                          Text('채팅 기록을 불러오는 중...'),
+                        ],
                       ),
-                      margin: const EdgeInsets.symmetric(vertical: 2),
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 8,
-                      ),
-                      decoration: BoxDecoration(
-                        color: msg["isUser"] == true
-                            ? const Color(0xFF816856)
-                            : const Color(0xFFEDE1D5),
-                        borderRadius: BorderRadius.circular(16),
-                      ),
-                      child: Text(
-                        msg["text"].toString(),
-                        style: TextStyle(
-                          color: msg["isUser"] == true
-                              ? Colors.white
-                              : Colors.black,
-                          fontSize: 16,
+                    )
+                  : _messages.isEmpty
+                      ? const Center(
+                          child: Text(
+                            '채팅 기록이 없습니다.\n새로운 메시지를 보내보세요!',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              fontSize: 16,
+                              color: Colors.grey,
+                            ),
+                          ),
+                        )
+                      : ListView.builder(
+                          padding: const EdgeInsets.all(8),
+                          itemCount: _messages.length,
+                          itemBuilder: (context, index) {
+                            final message = _messages[index];
+                            return Align(
+                              alignment: message['isUser']
+                                  ? Alignment.centerRight
+                                  : Alignment.centerLeft,
+                              child: Container(
+                                margin: const EdgeInsets.symmetric(
+                                    vertical: 4, horizontal: 8),
+                                padding: const EdgeInsets.all(12),
+                                decoration: BoxDecoration(
+                                  color: message['isUser']
+                                      ? Colors.blue[100]
+                                      : Colors.grey[200],
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: Text(
+                                  message['text'],
+                                  style: const TextStyle(fontSize: 16),
+                                ),
+                              ),
+                            );
+                          },
                         ),
-                      ),
-                    ),
-                  );
-                },
-              ),
             ),
             Padding(
               padding: const EdgeInsets.all(8.0),
@@ -182,19 +196,19 @@ class _ChatScreenState extends State<ChatScreen> {
                 children: [
                   Expanded(
                     child: TextField(
-                      controller: _controller,
+                      controller: _messageController,
                       decoration: const InputDecoration(
-                        hintText: " 메시지를 입력하세요...",
+                        hintText: '메시지를 입력하세요',
+                        border: OutlineInputBorder(),
                       ),
-                      onSubmitted: _sendMessage,
+                      onSubmitted: (_) => _sendMessage(),
                     ),
                   ),
-                  _isLoading
-                      ? const CircularProgressIndicator()
-                      : IconButton(
-                          icon: const Icon(Icons.send, color: Colors.brown),
-                          onPressed: () => _sendMessage(_controller.text),
-                        ),
+                  const SizedBox(width: 8),
+                  IconButton(
+                    icon: const Icon(Icons.send),
+                    onPressed: _sendMessage,
+                  ),
                 ],
               ),
             ),
@@ -202,5 +216,11 @@ class _ChatScreenState extends State<ChatScreen> {
         ),
       ),
     );
+  }
+
+  @override
+  void dispose() {
+    _messageController.dispose();
+    super.dispose();
   }
 }

@@ -2,101 +2,122 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import '../config/api_config.dart';
 import '../services/token_service.dart';
+import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
 
 class RankingService {
-  final TokenService _tokenService = TokenService();
+  static const String _baseUrl = '${ApiConfig.baseUrl}/ranking';
+  static final TokenService _tokenService = TokenService();
 
   // 전체 랭킹 조회
-  Future<List<Map<String, dynamic>>> getAllRankings() async {
+  static Future<List<Map<String, dynamic>>> getAllRankings() async {
     try {
+      final token = await _tokenService.getToken();
+      if (token == null) {
+        throw Exception('토큰이 없습니다.');
+      }
+
       final response = await http.get(
-        Uri.parse('${ApiConfig.baseUrl}/ranking/all'),
+        Uri.parse('$_baseUrl/all'),
         headers: {
+          'Authorization': token,
           'Content-Type': 'application/json',
-          'Authorization': _tokenService.currentToken ?? '',
+          'Accept': '*/*',
         },
       );
 
+      debugPrint('랭킹 조회 응답 상태: ${response.statusCode}');
+      debugPrint('랭킹 조회 응답 본문: ${response.body}');
+
       if (response.statusCode == 200) {
+        if (response.body.isEmpty) {
+          return [];
+        }
         final List<dynamic> data = jsonDecode(response.body);
-        return data.map((item) {
-          final user = item['user'] ?? {};
-          return {
-            'userId': user['userId'] ?? 0,
-            'name': user['name'] ?? 'Unknown',
-            'score': item['score'] ?? 0,
-            'rank': item['rank'] ?? 0,
-            'updatedAt': item['updatedAt'] ?? DateTime.now().toIso8601String(),
-          };
-        }).toList();
+        return data.map((item) => item as Map<String, dynamic>).toList();
+      } else if (response.statusCode == 404) {
+        return [];
       } else {
-        throw Exception('랭킹을 불러오는데 실패했습니다. (${response.statusCode})');
+        throw Exception('랭킹 조회에 실패했습니다: ${response.statusCode}');
       }
     } catch (e) {
-      throw Exception('랭킹 조회 중 오류가 발생했습니다: $e');
+      debugPrint('랭킹 조회 오류: $e');
+      return [];
     }
   }
 
-  // 내 랭킹 조회
-  Future<Map<String, dynamic>?> getMyRanking() async {
+  // 개인 랭킹 조회
+  static Future<Map<String, dynamic>> getUserRanking(int userId) async {
     try {
-      final userId = _tokenService.currentUserId;
-      if (userId == null) return null;
+      final token = await _tokenService.getToken();
+      if (token == null) {
+        throw Exception('토큰이 없습니다.');
+      }
 
       final response = await http.get(
-        Uri.parse('${ApiConfig.baseUrl}/ranking/user').replace(
-          queryParameters: {'userId': userId.toString()},
+        Uri.parse('$_baseUrl/user').replace(
+          queryParameters: {
+            'userId': userId.toString(),
+          },
         ),
         headers: {
+          'Authorization': token,
           'Content-Type': 'application/json',
-          'Authorization': _tokenService.currentToken ?? '',
+          'Accept': '*/*',
         },
       );
 
+      debugPrint('개인 랭킹 조회 응답 상태: ${response.statusCode}');
+      debugPrint('개인 랭킹 조회 응답 본문: ${response.body}');
+
       if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
-        final user = data['user'] ?? {};
-        return {
-          'userId': user['userId'] ?? 0,
-          'name': user['name'] ?? 'Unknown',
-          'score': data['score'] ?? 0,
-          'rank': data['rank'] ?? 0,
-          'updatedAt': data['updatedAt'] ?? DateTime.now().toIso8601String(),
-        };
+        if (response.body.isEmpty) {
+          throw Exception('랭킹 데이터가 없습니다.');
+        }
+        final Map<String, dynamic> ranking =
+            jsonDecode(response.body) as Map<String, dynamic>;
+        final user = ranking['user'] as Map<String, dynamic>;
+        final name = user['name'] as String;
+        final score = ranking['score'] as int;
+        return ranking;
       } else if (response.statusCode == 404) {
-        return null;
+        throw Exception('랭킹을 찾을 수 없습니다.');
       } else {
-        throw Exception('내 랭킹을 불러오는데 실패했습니다. (${response.statusCode})');
+        throw Exception('개인 랭킹 조회에 실패했습니다: ${response.statusCode}');
       }
     } catch (e) {
-      throw Exception('내 랭킹 조회 중 오류가 발생했습니다: $e');
+      debugPrint('개인 랭킹 조회 오류: $e');
+      rethrow;
     }
   }
 
   // 랭킹 점수 업데이트
-  Future<void> updateRankingScore(int score) async {
+  static Future<void> updateRankingScore(int userId) async {
     try {
-      final userId = _tokenService.currentUserId;
-      if (userId == null) return;
+      final token = await _tokenService.getToken();
+      if (token == null) {
+        throw Exception('토큰이 없습니다.');
+      }
 
       final response = await http.post(
-        Uri.parse('${ApiConfig.baseUrl}/api/ranking/update').replace(
+        Uri.parse('$_baseUrl/update').replace(
           queryParameters: {
             'userId': userId.toString(),
-            'score': score.toString(),
           },
         ),
         headers: {
+          'Authorization': token,
           'Content-Type': 'application/json',
-          'Authorization': _tokenService.currentToken ?? '',
+          'Accept': '*/*',
         },
       );
 
       if (response.statusCode != 200) {
-        throw Exception('랭킹 점수 업데이트에 실패했습니다. (${response.statusCode})');
+        throw Exception('랭킹 점수 업데이트에 실패했습니다: ${response.statusCode}');
       }
     } catch (e) {
-      throw Exception('랭킹 점수 업데이트 중 오류가 발생했습니다: $e');
+      debugPrint('랭킹 점수 업데이트 오류: $e');
+      rethrow;
     }
   }
 

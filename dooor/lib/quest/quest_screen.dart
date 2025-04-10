@@ -261,38 +261,28 @@ class _QuestScreenState extends State<QuestScreen> {
           throw Exception('인증 토큰이 없습니다.');
         }
 
-        final response = await http.get(
-          Uri.parse('${ApiConfig.baseUrl}/user/id'),
-          headers: {
-            'Content-Type': 'application/json',
-            'Accept': 'application/json',
-            'Authorization': token,
-          },
+        // TokenService에서 사용자 ID 가져오기
+        final userId = await TokenService.getUserId();
+        if (userId == null) {
+          throw Exception('사용자 ID를 찾을 수 없습니다.');
+        }
+
+        ApiService.completeQuest(
+          questId: quest.questId,
+          userId: int.parse(userId),
+          headers: headers,
+        ).then((success) {
+          if (!success) {
+            debugPrint('API 호출은 실패했지만 로컬에서는 완료 상태 유지');
+          }
+        });
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("퀘스트가 완료되었습니다!")),
         );
 
-        if (response.statusCode == 200) {
-          final data = jsonDecode(response.body);
-          final userId = data['userId'] as int;
-
-          ApiService.completeQuest(
-            questId: quest.questId,
-            userId: userId,
-            headers: headers,
-          ).then((success) {
-            if (!success) {
-              debugPrint('API 호출은 실패했지만 로컬에서는 완료 상태 유지');
-            }
-          });
-
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text("퀘스트가 완료되었습니다!")),
-          );
-
-          // 다음 스테이지 잠금 해제 여부 확인
-          _checkStageUnlock();
-        } else {
-          throw Exception('사용자 ID를 가져오는 중 오류가 발생했습니다.');
-        }
+        // 다음 스테이지 잠금 해제 여부 확인
+        _checkStageUnlock();
       } catch (e) {
         debugPrint('퀘스트 API 호출 오류: $e');
         ScaffoldMessenger.of(context).showSnackBar(
